@@ -1,0 +1,109 @@
+name: Build FNF BREAKOUT Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout mod project
+        uses: actions/checkout@v4
+
+      - name: Get Android Psych Engine base
+        run: |
+          git clone --depth 1 https://github.com/klornothiz-ai/FNF-PsychEngine-Android.git engine
+
+      - name: Prepare engine
+        run: |
+          cp -rn engine/assets ./assets || true
+          cp -rn engine/source ./source || true
+          cp -rn engine/art ./art || true
+          cp engine/Project.xml ./Project.xml
+          mkdir -p mods
+          cp -r mod/BREAKOUT mods/BREAKOUT
+          rm -rf engine
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: '4.3.6'
+
+      - name: Setup Haxelib
+        run: |
+          mkdir -p ~/haxelib
+          haxelib setup ~/haxelib
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r21e
+          link-to-sdk: true
+
+      - name: Setup Android SDK
+        run: |
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/usr/local/lib/android/sdk "platforms;android-34" "build-tools;34.0.0"
+          echo ANDROID_SDK=/usr/local/lib/android/sdk >> $GITHUB_ENV
+          echo ANDROID_HOME=/usr/local/lib/android/sdk >> $GITHUB_ENV
+          echo ANDROID_SDK_ROOT=/usr/local/lib/android/sdk >> $GITHUB_ENV
+          echo ANDROID_NDK_ROOT=/usr/local/lib/android/sdk/ndk/21.4.7075529 >> $GITHUB_ENV
+          echo ANDROID_SETUP=true >> $GITHUB_ENV
+
+      - name: Install Haxe libraries
+        run: |
+          haxelib install flixel 5.6.1 --quiet
+          haxelib install flixel-addons 3.2.2 --quiet
+          haxelib install tjson 1.4.0 --quiet
+          haxelib install flxanimate --quiet
+          haxelib install hscript-iris 1.1.3 --quiet
+          haxelib remove linc_luajit || true
+          haxelib git linc_luajit https://github.com/nebulazorua/linc_luajit.git --quiet || haxelib install linc_luajit --quiet
+          haxelib install lime --quiet
+          haxelib install openfl --quiet
+
+      - name: Prepare mobile compatibility
+        run: |
+          mkdir -p source/mobile
+          cat > source/mobile/MobileInputHandler.hx << 'HXEOF'
+          package mobile;
+          class MobileInputHandler {
+            public static function onButtonDown(action:String):Void {}
+            public static function onButtonUp(action:String):Void {}
+            public static function handleAction(action:String):Void {}
+            public static function releaseAction(action:String):Void {}
+          }
+          HXEOF
+          cat > source/mobile/MobileTouchControls.hx << 'HXEOF'
+          package mobile;
+          class MobileTouchControls {
+            public static var enabled:Bool = true;
+          }
+          HXEOF
+          cat > source/mobile/Hitbox.hx << 'HXEOF'
+          package mobile;
+          import flixel.FlxSprite;
+          class Hitbox extends FlxSprite {
+            public function new(x:Float=0, y:Float=0, w:Float=1, h:Float=1) { super(x, y); }
+          }
+          HXEOF
+          mkdir -p assets/fonts
+          touch list.txt
+          touch assets/list.txt
+
+      - name: Build APK
+        run: haxelib run lime build android -final
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FNF-BREAKOUT-Android
+          path: 'export/**/*.apk'
+          if-no-files-found: error
