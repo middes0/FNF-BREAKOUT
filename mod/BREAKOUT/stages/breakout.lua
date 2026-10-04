@@ -41,11 +41,11 @@ function onBeatHit()
     if beat == 0 then
         setProperty('breakoutFloor.alpha', 0.88)
         doTweenAlpha('floorReturn', 'breakoutFloor', 0.58, 0.22, 'quadOut')
-        setProperty('camGame.zoom', getProperty('defaultCamZoom') + 0.025)
+        setProperty('camGame.zoom', defaultCamZoom + 0.025)
     elseif beat == 2 then
         setProperty('breakoutFloor.alpha', 0.72)
         doTweenAlpha('floorReturn2', 'breakoutFloor', 0.58, 0.22, 'quadOut')
-        setProperty('camGame.zoom', getProperty('defaultCamZoom') + 0.012)
+        setProperty('camGame.zoom', defaultCamZoom + 0.012)
     end
 end
 
@@ -54,7 +54,7 @@ function onUpdate(elapsed)
     setProperty('breakoutTitle.scale.x', pulse)
     setProperty('breakoutTitle.scale.y', pulse)
 
-    local baseZoom = getProperty('defaultCamZoom')
+    local baseZoom = defaultCamZoom
     local currentZoom = getProperty('camGame.zoom')
     if currentZoom > baseZoom then
         setProperty('camGame.zoom', currentZoom - (elapsed * 0.045))
