@@ -78,6 +78,11 @@ jobs:
           haxelib run lime config JAVA_HOME "$JAVA_HOME_17_X64"
           haxelib run lime config ANDROID_SETUP true
 
+      - name: Install content build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick ffmpeg
+
       - name: Assemble full BREAKOUT content
         working-directory: engine
         run: |
