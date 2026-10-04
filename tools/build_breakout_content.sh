@@ -5,7 +5,7 @@ ENGINE_DIR="${1:?engine dir required}"
 MOD_DIR="${2:?mod dir required}"
 ASSETS="${ENGINE_DIR}/assets/shared"
 
-mkdir -p "${MOD_DIR}/images/characters" "${MOD_DIR}/images" "${MOD_DIR}/images/noteSkins"
+mkdir -p "${MOD_DIR}/images/characters" "${MOD_DIR}/images" "${MOD_DIR}/images/icons"
 mkdir -p "${MOD_DIR}/songs/breakout" "${MOD_DIR}/songs/overdrive" "${MOD_DIR}/songs/neon-run"
 mkdir -p "${MOD_DIR}/data/breakout" "${MOD_DIR}/data/overdrive" "${MOD_DIR}/data/neon-run"
 
@@ -40,11 +40,19 @@ convert -size 1280x720 gradient:"#080207-#4a0b1b" "${MOD_DIR}/images/overdrive-b
 convert -size 1280x720 gradient:"#040b16-#3d1c69" "${MOD_DIR}/images/neon-run-bg.png"
 
 # --- BREAKOUT note skin ---------------------------------------------------
-cp "${ASSETS}/images/noteSkins/NOTE_assets.png" "${MOD_DIR}/images/noteSkins/NOTE_assets.png"
-cp "${ASSETS}/images/noteSkins/NOTE_assets.xml" "${MOD_DIR}/images/noteSkins/NOTE_assets.xml"
-convert "${MOD_DIR}/images/noteSkins/NOTE_assets.png" \
+cp "${ASSETS}/images/noteSkins/NOTE_assets.png" "${MOD_DIR}/images/NOTE_assets.png"
+cp "${ASSETS}/images/noteSkins/NOTE_assets.xml" "${MOD_DIR}/images/NOTE_assets.xml"
+convert "${MOD_DIR}/images/NOTE_assets.png" \
   -fill "#7b3ff2" -colorize 28% \
-  "${MOD_DIR}/images/noteSkins/NOTE_assets.png"
+  "${MOD_DIR}/images/NOTE_assets.png"
+
+# --- BREAKOUT health icons -------------------------------------------------
+cp "${ASSETS}/images/icons/icon-bf.png" "${MOD_DIR}/images/icons/kai.png"
+cp "${ASSETS}/images/icons/icon-dad.png" "${MOD_DIR}/images/icons/rex.png"
+cp "${ASSETS}/images/icons/icon-gf.png" "${MOD_DIR}/images/icons/nova.png"
+convert "${MOD_DIR}/images/icons/kai.png" -fill "#7b3ff2" -colorize 24% "${MOD_DIR}/images/icons/kai.png"
+convert "${MOD_DIR}/images/icons/rex.png" -fill "#be304b" -colorize 22% "${MOD_DIR}/images/icons/rex.png"
+convert "${MOD_DIR}/images/icons/nova.png" -fill "#a052dc" -colorize 22% "${MOD_DIR}/images/icons/nova.png"
 
 convert -size 1280x160 xc:"#09030f" \
   -stroke "#7b3ff2" -strokewidth 4 \
