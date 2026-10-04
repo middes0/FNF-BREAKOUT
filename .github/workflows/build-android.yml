@@ -78,6 +78,18 @@ jobs:
           haxelib run lime config JAVA_HOME "$JAVA_HOME_17_X64"
           haxelib run lime config ANDROID_SETUP true
 
+      - name: Assemble full BREAKOUT content
+        working-directory: engine
+        run: |
+          bash ../tools/build_breakout_content.sh "$PWD" "$PWD/example_mods/BREAKOUT"
+          test -f example_mods/BREAKOUT/images/characters/KAI.png
+          test -f example_mods/BREAKOUT/images/characters/REX.png
+          test -f example_mods/BREAKOUT/images/characters/NOVA.png
+          test -f example_mods/BREAKOUT/songs/breakout/Inst.ogg
+          test -f example_mods/BREAKOUT/songs/overdrive/Inst.ogg
+          test -f example_mods/BREAKOUT/songs/neon-run/Inst.ogg
+          test -f art/iconApp.png
+
       - name: Verify mod was bundled
         working-directory: engine
         run: |
