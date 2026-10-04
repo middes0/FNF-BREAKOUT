@@ -5,7 +5,7 @@ ENGINE_DIR="${1:?engine dir required}"
 MOD_DIR="${2:?mod dir required}"
 ASSETS="${ENGINE_DIR}/assets/shared"
 
-mkdir -p "${MOD_DIR}/images/characters" "${MOD_DIR}/images"
+mkdir -p "${MOD_DIR}/images/characters" "${MOD_DIR}/images" "${MOD_DIR}/images/noteSkins"
 mkdir -p "${MOD_DIR}/songs/breakout" "${MOD_DIR}/songs/overdrive" "${MOD_DIR}/songs/neon-run"
 mkdir -p "${MOD_DIR}/data/breakout" "${MOD_DIR}/data/overdrive" "${MOD_DIR}/data/neon-run"
 
@@ -36,6 +36,9 @@ convert "${MOD_DIR}/images/characters/NOVA.png" \
 
 # --- Custom stage art ------------------------------------------------------
 convert -size 1280x720 gradient:"#07030d-#2d0a48" "${MOD_DIR}/images/breakout-bg.png"
+convert -size 1280x720 gradient:"#080207-#4a0b1b" "${MOD_DIR}/images/overdrive-bg.png"
+convert -size 1280x720 gradient:"#040b16-#3d1c69" "${MOD_DIR}/images/neon-run-bg.png"
+
 convert -size 1280x160 xc:"#09030f" \
   -stroke "#7b3ff2" -strokewidth 4 \
   -fill none -draw "line 0,20 1280,20 line 0,150 1280,150" \
