@@ -17,7 +17,8 @@ jobs:
           git clone --depth 1 https://github.com/klornothiz-ai/FNF-PsychEngine-Android.git _android
           git clone --depth 1 https://github.com/ShadowMario/FNF-PsychEngine.git _base
           cp -rn _base/source ./ || true
-          cp -rn _base/assets/* ./assets/ || true
+          mkdir -p ./assets
+          cp -rn _base/assets/. ./assets/
           cp -rn _base/example_mods ./ || true
           cp -rn _base/art ./ || true
           cp -n _android/Project.xml ./Project.xml || cp _base/Project.xml ./Project.xml
@@ -32,6 +33,13 @@ jobs:
           touch list.txt
           touch assets/list.txt
           touch mods/list.txt
+
+      - name: Verify engine layout
+        run: |
+          test -d assets/shared || { echo 'ERROR: assets/shared is missing'; find assets -maxdepth 2 -type d | sort; exit 1; }
+          test -d source || { echo 'ERROR: source is missing'; exit 1; }
+          test -f Project.xml || { echo 'ERROR: Project.xml is missing'; exit 1; }
+          echo 'Engine layout OK'
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v1
