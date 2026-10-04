@@ -12,19 +12,26 @@ jobs:
       - name: Checkout mod project
         uses: actions/checkout@v4
 
-      - name: Get Android Psych Engine base
+      - name: Get Android engine and official game assets
         run: |
-          git clone --depth 1 https://github.com/klornothiz-ai/FNF-PsychEngine-Android.git engine
+          git clone --depth 1 https://github.com/klornothiz-ai/FNF-PsychEngine-Android.git _android
+          git clone --depth 1 https://github.com/ShadowMario/FNF-PsychEngine.git _base
+          cp -rn _base/source ./ || true
+          cp -rn _base/assets/* ./assets/ || true
+          cp -rn _base/example_mods ./ || true
+          cp -rn _base/art ./ || true
+          cp -n _android/Project.xml ./Project.xml || cp _base/Project.xml ./Project.xml
+          cp -rn _android/source/mobile ./source/ || true
+          rm -rf _android _base
 
-      - name: Prepare engine
+      - name: Prepare mod
         run: |
-          cp -rn engine/assets ./assets || true
-          cp -rn engine/source ./source || true
-          cp -rn engine/art ./art || true
-          cp engine/Project.xml ./Project.xml
           mkdir -p mods
           cp -r mod/BREAKOUT mods/BREAKOUT
-          rm -rf engine
+          mkdir -p assets/fonts
+          touch list.txt
+          touch assets/list.txt
+          touch mods/list.txt
 
       - name: Setup Haxe
         uses: krdlab/setup-haxe@v1
@@ -50,7 +57,7 @@ jobs:
 
       - name: Setup Android SDK
         run: |
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/usr/local/lib/android/sdk "platforms;android-34" "build-tools;34.0.0"
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=/usr/local/lib/android/sdk "platforms;android-34" "build-tools;34.0.0" || true
           echo ANDROID_SDK=/usr/local/lib/android/sdk >> $GITHUB_ENV
           echo ANDROID_HOME=/usr/local/lib/android/sdk >> $GITHUB_ENV
           echo ANDROID_SDK_ROOT=/usr/local/lib/android/sdk >> $GITHUB_ENV
@@ -71,7 +78,11 @@ jobs:
 
       - name: Prepare mobile compatibility
         run: |
-          mkdir -p source/mobile
+          rm -f source/mobile/MobileInputHandler.hx
+          rm -f source/mobile/MobileTouchControls.hx
+          rm -f source/mobile/Hitbox.hx
+          rm -f source/mobile/MobileControls.hx
+          rm -f source/mobile/MobileButton.hx
           cat > source/mobile/MobileInputHandler.hx << 'HXEOF'
           package mobile;
           class MobileInputHandler {
@@ -92,11 +103,9 @@ jobs:
           import flixel.FlxSprite;
           class Hitbox extends FlxSprite {
             public function new(x:Float=0, y:Float=0, w:Float=1, h:Float=1) { super(x, y); }
+            override function update(elapsed:Float) { super.update(elapsed); }
           }
           HXEOF
-          mkdir -p assets/fonts
-          touch list.txt
-          touch assets/list.txt
 
       - name: Build APK
         run: haxelib run lime build android -final
