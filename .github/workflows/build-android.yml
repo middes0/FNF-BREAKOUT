@@ -22,6 +22,11 @@ jobs:
           cp -rn _base/example_mods ./ || true
           cp -rn _base/art ./ || true
           cp -n _android/Project.xml ./Project.xml || cp _base/Project.xml ./Project.xml
+          # O Project.xml Android do fork desativa APIs de input que o código-base ainda referencia.
+          # Mantemos mouse/teclado/gamepad compiláveis; os controles touch continuam disponíveis no port.
+          sed -i '/<haxedef name="FLX_NO_MOUSE" if="mobile" \/>/d' Project.xml
+          sed -i '/<haxedef name="FLX_NO_KEYBOARD" if="mobile" \/>/d' Project.xml
+          sed -i '/<haxedef name="FLX_NO_GAMEPAD" if="mobile" \/>/d' Project.xml
           cp -rn _android/source/mobile ./source/ || true
           rm -rf _android _base
 
