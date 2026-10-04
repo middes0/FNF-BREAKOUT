@@ -39,12 +39,25 @@ convert -size 1280x720 gradient:"#07030d-#2d0a48" "${MOD_DIR}/images/breakout-bg
 convert -size 1280x720 gradient:"#080207-#4a0b1b" "${MOD_DIR}/images/overdrive-bg.png"
 convert -size 1280x720 gradient:"#040b16-#3d1c69" "${MOD_DIR}/images/neon-run-bg.png"
 
+# --- BREAKOUT note skin ---------------------------------------------------
+cp "${ASSETS}/images/noteSkins/NOTE_assets.png" "${MOD_DIR}/images/noteSkins/NOTE_assets.png"
+cp "${ASSETS}/images/noteSkins/NOTE_assets.xml" "${MOD_DIR}/images/noteSkins/NOTE_assets.xml"
+convert "${MOD_DIR}/images/noteSkins/NOTE_assets.png" \
+  -fill "#7b3ff2" -colorize 28% \
+  "${MOD_DIR}/images/noteSkins/NOTE_assets.png"
+
 convert -size 1280x160 xc:"#09030f" \
   -stroke "#7b3ff2" -strokewidth 4 \
   -fill none -draw "line 0,20 1280,20 line 0,150 1280,150" \
   -stroke "#3b145c" -strokewidth 2 \
   -draw "line 0,55 1280,55 line 0,92 1280,92 line 80,0 10,160 line 260,0 190,160 line 440,0 370,160 line 620,0 550,160 line 800,0 730,160 line 980,0 910,160 line 1160,0 1090,160" \
   "${MOD_DIR}/images/breakout-floor.png"
+
+# Variant floors keep the same geometry but change the song identity.
+cp "${MOD_DIR}/images/breakout-floor.png" "${MOD_DIR}/images/overdrive-floor.png"
+cp "${MOD_DIR}/images/breakout-floor.png" "${MOD_DIR}/images/neon-run-floor.png"
+convert "${MOD_DIR}/images/overdrive-floor.png" -fill "#be304b" -colorize 28% "${MOD_DIR}/images/overdrive-floor.png"
+convert "${MOD_DIR}/images/neon-run-floor.png" -fill "#5d49d8" -colorize 24% "${MOD_DIR}/images/neon-run-floor.png"
 
 # A compact app icon generated directly in CI, so the APK already has the
 # BREAKOUT identity without committing a binary blob to this repository.
