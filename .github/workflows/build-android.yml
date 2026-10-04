@@ -24,9 +24,18 @@ jobs:
           mkdir -p engine/example_mods/BREAKOUT
           cp -r mod/BREAKOUT/. engine/example_mods/BREAKOUT/
           rm -f engine/example_mods/BREAKOUT/.gitkeep || true
-          # Give the build its own package identity.
+          # Give the build its own package identity and disable desktop-only Discord.
           sed -i 's/com.shadowmario.psychengine073/com.middes.breakout/g' engine/Project.xml
           sed -i 's/PsychMobile0.7.3/MiddesBreakout/g' engine/Project.xml
+          sed -i 's/<define name="DISCORD_ALLOWED" unless="ios" \/>/<define name="DISCORD_ALLOWED" if="desktop" \/>/' engine/Project.xml
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("engine/hmm.json")
+          data = json.loads(p.read_text())
+          data["dependencies"] = [d for d in data["dependencies"] if d.get("name") != "hxdiscord_rpc"]
+          p.write_text(json.dumps(data, indent=2) + "\n")
+          PY
           test -f engine/Project.xml
           test -f engine/example_mods/BREAKOUT/pack.json
 
