@@ -1,0 +1,6 @@
+package com.middes.loja24h;
+import android.app.Activity;import android.os.Bundle;import android.view.Window;import android.view.WindowManager;import android.webkit.*;import androidx.webkit.WebViewAssetLoader;import androidx.webkit.WebViewClientCompat;
+public class MainActivity extends Activity{
+ @Override public void onCreate(Bundle b){super.onCreate(b);requestWindowFeature(Window.FEATURE_NO_TITLE);getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);WebView w=new WebView(this);w.setBackgroundColor(0xFF050505);WebSettings s=w.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setMediaPlaybackRequiresUserGesture(false);s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setBuiltInZoomControls(false);s.setDisplayZoomControls(false);WebViewAssetLoader l=new WebViewAssetLoader.Builder().addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();w.setWebViewClient(new WebViewClientCompat(){@Override public WebResourceResponse shouldInterceptRequest(WebView v,WebResourceRequest r){return l.shouldInterceptRequest(r.getUrl());}});w.setWebChromeClient(new WebChromeClient());w.loadUrl("https://appassets.androidplatform.net/assets/index.html");setContentView(w);}
+ @Override public void onBackPressed(){}
+}
