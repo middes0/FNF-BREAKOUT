@@ -192,7 +192,6 @@ stick.addEventListener("pointermove",e=>{
 stick.addEventListener("pointerup",()=>{dragging=false;mobile.x=0;mobile.y=0;knob.style.transform=""});
 
 let lookDrag=false,lastX=0,lastY=0;
-const look=document.querySelector("#look");
 function startLook(e){
   if(e.target.closest("#stick")||e.target.closest("#interact"))return;
   lookDrag=true;lastX=e.clientX;lastY=e.clientY;
