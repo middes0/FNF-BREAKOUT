@@ -8,7 +8,7 @@ const clockEl=document.querySelector("#clock");
 const messageEl=document.querySelector("#message");
 
 let scene,camera,renderer,clock;
-let started=false,lightsOn=false,cleaned=false;
+let started=false,lightsOn=false,cleaned=false,phase=0;
 let keys={};
 let yaw=0,pitch=0;
 let player=new THREE.Vector3(0,1.65,6);
@@ -94,21 +94,26 @@ function showMessage(t){
 function setTask(t){taskEl.textContent=t}
 
 function interact(){
+  if(!lightsOn){
+    const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);
+    const hit=ray.intersectObjects(interactables,false)[0];
+    if(hit&&hit.object.name==="lamp"){setLights(true);phase=1;setTask("Vá até o caixa e ligue o sistema.");showMessage("As luzes acenderam. Melhor.");return;}
+  }
   const ray=new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0,0),camera);
   const hits=ray.intersectObjects(interactables,false);
   if(!hits.length || hits[0].distance>3.2){showMessage("Não há nada para fazer aqui.");return}
   const o=hits[0].object;
   if(o.name==="lamp"){return}
-  if(o.name==="caixa"){showMessage("A caixa ainda está desligada.");return}
-  if(o.name==="porta"){showMessage("Ainda falta terminar o turno.");return}
+  if(o.name==="caixa"){if(!lightsOn){showMessage("Sem energia, o caixa não liga.");return} phase=2;setTask("Confira se a porta está trancada.");showMessage("Caixa ligado. Tudo parece normal.");return}
+  if(o.name==="porta"){if(phase<2){showMessage("Você ainda tem trabalho para fazer.");return} phase=3;setTask("Volte para o caixa.");showMessage("A porta está trancada.");return}
   if(o.name==="relogio"){showMessage("22:00. Você acabou de chegar.");return}
 }
 
 function startGame(){
   if(started)return;
   started=true; start.style.display="none";
-  setLights(false);
+  setLights(false); phase=0; setTask("Ligue as luzes da loja.");
   if(innerWidth<=700)document.body.classList.add("mobile-on");
   requestAnimationFrame(loop);
   showMessage("A loja está escura. Você sabe onde fica o interruptor.");
@@ -132,7 +137,7 @@ function updateClock(){
   const h=22+Math.floor(mins/60);
   const m=mins%60;
   clockEl.textContent=String(h%24).padStart(2,"0")+":"+String(m).padStart(2,"0");
-  if(h>=23&&!lightsOn){setLights(true);setTask("Confira o caixa.");showMessage("As luzes acenderam sozinhas.");}
+  if(h>=23&&!lightsOn){setLights(true);phase=1;setTask("Confira o caixa.");showMessage("As luzes acenderam sozinhas.");}
 }
 function loop(){
   const dt=Math.min(clock?.getDelta?.()||.016,.05);
