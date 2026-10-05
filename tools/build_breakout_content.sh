@@ -227,7 +227,37 @@ charts = [
     ("blammed", "neon-run", "NEON RUN"),
 ]
 
-for source, folder, title in charts:
+# BREAKOUT gets its own original chart: 32 bars at 150 BPM, with REX as opponent.
+bpm = 150
+beat_ms = 60000.0 / bpm
+sections = []
+melody = [0, 2, 4, 2, 0, 3, 5, 4]
+for bar in range(32):
+    must_hit = (bar % 2 == 1)
+    section_notes = []
+    for j, degree in enumerate(melody):
+        t = round((bar * 4 + j * 0.5) * beat_ms, 3)
+        lane = (degree % 4) + (0 if must_hit else 4)
+        section_notes.append([t, lane, 0])
+        if j in (2, 6):
+            section_notes.append([round(t + beat_ms * 0.25, 3), ((degree + 1) % 4) + (0 if must_hit else 4), 0])
+    sections.append({"sectionNotes": section_notes, "lengthInSteps": 16, "mustHitSection": must_hit, "bpm": bpm, "changeBPM": False})
+
+breakout_chart = {"song": {
+    "song": "BREAKOUT", "notes": sections, "events": [], "bpm": bpm, "speed": 2.0,
+    "needsVoices": False, "player1": "kai", "player2": "rex", "gfVersion": "nova",
+    "stage": "breakout", "validScore": True, "generatedBy": "FNF BREAKOUT original chart"
+}}
+out = mod / "data" / "breakout" / "breakout.json"
+out.parent.mkdir(parents=True, exist_ok=True)
+with out.open("w", encoding="utf-8") as f:
+    json.dump(breakout_chart, f, separators=(",", ":"))
+hard = json.loads(json.dumps(breakout_chart))
+hard["song"]["speed"] = 2.15
+with (out.parent / "breakout-hard.json").open("w", encoding="utf-8") as f:
+    json.dump(hard, f, separators=(",", ":"))
+(mod / ".music_jobs").open("w", encoding="utf-8").write("breakout|150|60.0\n")
+
     src = assets / "data" / source / f"{source}.json"
     with src.open(encoding="utf-8") as f:
         data = json.load(f)
