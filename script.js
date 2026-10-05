@@ -1,169 +1,45 @@
-const $ = (selector) => document.querySelector(selector);
-
-const workspace = $("#workspace");
-const enterButton = $("#enterButton");
-const statusButton = $("#statusButton");
-const closeWorkspace = $("#closeWorkspace");
-const modal = $("#modal");
-const modalTitle = $("#modalTitle");
-const modalEyebrow = $("#modalEyebrow");
-const modalContent = $("#modalContent");
-const terminalPanel = $("#terminalPanel");
-const terminalOutput = $("#terminalOutput");
-const terminalForm = $("#terminalForm");
-const terminalInput = $("#terminalInput");
-
-function pad(n){ return String(n).padStart(2, "0"); }
-
-function updateClock(){
-  const now = new Date();
-  $("#clock").textContent = [now.getHours(), now.getMinutes(), now.getSeconds()].map(pad).join(":");
+const $=s=>document.querySelector(s);
+const KEY="tlw_state_v2";
+const defaults={visits:0,opened:[],terminalUsed:false,secretClicks:0,visitor:"0001"};
+let state;try{state={...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch{state={...defaults}}
+state.visits++;save();
+const workspace=$("#workspace"),modal=$("#modal"),modalTitle=$("#modalTitle"),modalEyebrow=$("#modalEyebrow"),modalContent=$("#modalContent"),terminalPanel=$("#terminalPanel"),terminalOutput=$("#terminalOutput"),terminalForm=$("#terminalForm"),terminalInput=$("#terminalInput");
+const pad=n=>String(n).padStart(2,"0");
+const time=()=>{const n=new Date();return[n.getHours(),n.getMinutes(),n.getSeconds()].map(pad).join(":")};
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function clock(){$("#clock").textContent=time();if(state.visits>1)$("#lastLog").textContent="agora — alguém voltou a abrir o arquivo."}
+setInterval(clock,1000);clock();
+function openWorkspace(){workspace.classList.add("open");workspace.setAttribute("aria-hidden","false");workspace.scrollIntoView({behavior:"smooth",block:"start"})}
+function closeWorkspace(){workspace.classList.remove("open");workspace.setAttribute("aria-hidden","true")}
+$("#enterButton").addEventListener("click",openWorkspace);$("#closeWorkspace").addEventListener("click",closeWorkspace);
+function openModal(t,e,h){modalTitle.textContent=t;modalEyebrow.textContent=e;modalContent.innerHTML=h;modal.classList.add("open");modal.setAttribute("aria-hidden","false")}
+function closeModal(){modal.classList.remove("open");modal.setAttribute("aria-hidden","true")}
+$("#modalClose").addEventListener("click",closeModal);modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();terminalPanel.classList.remove("open")}});
+function opened(k){if(!state.opened.includes(k)){state.opened.push(k);save()}}
+function file(k){
+ opened(k);
+ if(k==="terminal"){terminalPanel.classList.add("open");terminalInput.focus();return}
+ if(k==="welcome"){
+  const h=state.opened.includes("visitors")?'<p>Se você já viu o registro, não precisa que eu explique.</p><p>Eu não sei quem mantém isto funcionando.</p><p>Quando eu parei de atualizar a página, ela continuou recebendo visitas.</p><pre>não apague o arquivo 003.</pre>':'<p>Se você está lendo isso, o site ainda está funcionando.</p><p>Eu comecei a montar estas páginas para guardar algumas coisas. Depois parei.</p><p>Não lembro exatamente por quê.</p><pre>se encontrar alguma coisa estranha, não feche a página.</pre>';
+  openModal("Mensagem de boas-vindas","FILE 001 / TEXT",h)
+ }
+ if(k==="forbidden"){
+  const h=state.opened.includes("forbidden")?'<p>Agora tem outra coisa.</p><pre>eu também achei que era o primeiro.</pre><p>Essa frase não estava aqui ontem.</p>':'<p>O arquivo deveria estar vazio.</p><p>Tem uma linha aqui:</p><pre>VOCÊ NÃO É O PRIMEIRO.</pre>';
+  openModal("DO_NOT_OPEN.txt","FILE 002 / WARNING",h)
+ }
+ if(k==="visitors"){
+  const today=new Date().toLocaleDateString("pt-BR"),h=state.visits===1?'<pre>0000  SYSTEM\n0001  05/10/2026 03:17:42\n0002  --:--:--  [sem horário]</pre><p>A segunda linha não estava aqui quando o arquivo foi criado.</p>':`<pre>0000  SYSTEM\n0001  05/10/2026 03:17:42\n0002  ${today} ${time()}  [VOCÊ]\n0003  --/--/---- --:--:--  [aguardando]</pre><p>Você abriu esta página antes. O registro sabe disso.</p>`;
+  openModal("Registro de visitantes","FILE 003 / LOG",h)
+ }
 }
-setInterval(updateClock,1000);
-updateClock();
-
-function openWorkspace(){
-  workspace.classList.add("open");
-  workspace.setAttribute("aria-hidden","false");
-  workspace.scrollIntoView({behavior:"smooth",block:"start"});
-}
-function closeWorkspaceView(){
-  workspace.classList.remove("open");
-  workspace.setAttribute("aria-hidden","true");
-}
-
-enterButton.addEventListener("click",openWorkspace);
-closeWorkspace.addEventListener("click",closeWorkspaceView);
-
-statusButton.addEventListener("click",()=>{
-  openModal("SYSTEM STATUS","STATUS",`
-    <p><strong style="color:#b5ff5c">ONLINE</strong></p>
-    <p>Node: 01<br>Access: PUBLIC<br>Archive integrity: 97%<br>Last heartbeat: <span id="statusTime">now</span></p>
-    <p>There is no scheduled maintenance.</p>
-    <p style="color:#777">Nota: este aviso foi escrito antes de a manutenção ser cancelada.</p>
-  `);
-});
-
-const files = {
-  welcome:{
-    eyebrow:"FILE 001 / TEXT",
-    title:"Mensagem de boas-vindas",
-    html:`
-      <p>Se você está lendo isso, o site ainda está funcionando.</p>
-      <p>Não procure por uma empresa. Não existe empresa.</p>
-      <p>Não procure pelo dono. O dono parou de responder.</p>
-      <p>Por enquanto, faça apenas uma coisa:</p>
-      <pre>continue explorando.</pre>
-    `
-  },
-  forbidden:{
-    eyebrow:"FILE 002 / WARNING",
-    title:"DO_NOT_OPEN.txt",
-    html:`
-      <p>O arquivo deveria estar vazio.</p>
-      <p>Em vez disso, ele contém uma única linha:</p>
-      <pre>VOCÊ NÃO É O PRIMEIRO.</pre>
-      <p style="color:#777">O arquivo foi modificado enquanto você o abriu.</p>
-    `
-  },
-  visitors:{
-    eyebrow:"FILE 003 / LOG",
-    title:"Registro de visitantes",
-    html:`
-      <pre>0000  SYSTEM
-0001  05/10/2026 03:17:42
-0002  --:--:--  [UNKNOWN]</pre>
-      <p>A segunda entrada aparece vazia, mas ocupa espaço no arquivo.</p>
-    `
-  }
-};
-
-function openModal(title,eyebrow,html){
-  modalEyebrow.textContent = eyebrow;
-  modalTitle.textContent = title;
-  modalContent.innerHTML = html;
-  modal.classList.add("open");
-  modal.setAttribute("aria-hidden","false");
-}
-function closeModal(){
-  modal.classList.remove("open");
-  modal.setAttribute("aria-hidden","true");
-}
-$("#modalClose").addEventListener("click",closeModal);
-modal.addEventListener("click",(e)=>{ if(e.target===modal) closeModal(); });
-document.addEventListener("keydown",(e)=>{
-  if(e.key==="Escape"){ closeModal(); terminalPanel.classList.remove("open"); }
-});
-
-document.querySelectorAll("[data-open]").forEach((button)=>{
-  button.addEventListener("click",()=>{
-    const key = button.dataset.open;
-    if(key==="terminal"){
-      terminalPanel.classList.add("open");
-      terminalInput.focus();
-      return;
-    }
-    const file = files[key];
-    if(file) openModal(file.title,file.eyebrow,file.html);
-  });
-});
-
-function writeTerminal(line, className=""){
-  const row = document.createElement("div");
-  if(className) row.className = className;
-  row.innerHTML = line;
-  terminalOutput.appendChild(row);
-  terminalOutput.scrollTop = terminalOutput.scrollHeight;
-}
-
-const commands = {
-  help:()=> "comandos: help · status · date · whoami · open archive · clear",
-  status:()=> "NODE 01 / ONLINE / archive=97% / signal=unstable",
-  date:()=> new Date().toLocaleString("pt-BR"),
-  whoami:()=> "visitor_0001",
-  "open archive":()=> "arquivo já disponível na página principal.",
-  clear:()=>{
-    terminalOutput.innerHTML="";
-    return "";
-  }
-};
-
-terminalForm.addEventListener("submit",(e)=>{
-  e.preventDefault();
-  const value = terminalInput.value.trim().toLowerCase();
-  if(!value) return;
-  writeTerminal(`<span style="color:#b5ff5c">&gt;</span> ${value.replaceAll("<","&lt;")}`);
-  if(commands[value]){
-    const result = commands[value]();
-    if(result) writeTerminal(result);
-  }else{
-    writeTerminal("comando não encontrado.");
-  }
-  terminalInput.value="";
-});
-
+document.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>file(b.dataset.open)));
+$("#statusButton").addEventListener("click",()=>openModal("Status","SYSTEM STATUS",`<p><strong style="color:#b5ff5c">ONLINE</strong></p><p>Node: 01<br>Acesso: público<br>Última resposta: ${time()}</p><p style="color:#777">Não há manutenção marcada.</p>${state.visits>1?"<p>Tem alguém conectado agora.</p>":""}`));
+function write(s){const r=document.createElement("div");r.innerHTML=s;terminalOutput.appendChild(r);terminalOutput.scrollTop=terminalOutput.scrollHeight}
+const commands={help:()=>state.terminalUsed?"comandos: help · status · date · whoami · open archive · log · clear":"comandos: help · status · date · whoami · open archive · clear",status:()=>state.visits>1?"NODE 01 / ONLINE / alguém está usando o arquivo.":"NODE 01 / ONLINE / signal=unstable",date:()=>new Date().toLocaleString("pt-BR"),whoami:()=>state.visits>1?"visitor_0001 / retorno confirmado":"visitor_0001","open archive":()=>"o arquivo já está aberto.",log:()=>state.terminalUsed?"última entrada: visitor_0001 / acesso repetido":"comando não encontrado.",clear:()=>{terminalOutput.innerHTML="";return""}};
+terminalForm.addEventListener("submit",e=>{e.preventDefault();const v=terminalInput.value.trim().toLowerCase();if(!v)return;write('<span style="color:#b5ff5c">&gt;</span> '+esc(v));if(commands[v]){const r=commands[v]();if(r)write(r)}else write("comando não encontrado.");state.terminalUsed=true;save();terminalInput.value=""});
 $("#closeTerminal").addEventListener("click",()=>terminalPanel.classList.remove("open"));
-
-let clicks = 0;
-$("#brandButton").addEventListener("click",()=>{
-  clicks++;
-  if(clicks===5){
-    document.body.classList.add("flash");
-    setTimeout(()=>document.body.classList.remove("flash"),220);
-    openModal("Mensagem oculta","SYSTEM / ???",`
-      <p style="color:#b5ff5c">Você encontrou algo que não deveria estar visível.</p>
-      <pre>NODE 02: "AINDA TEM ALGUÉM AQUI."</pre>
-      <p>Depois de ler esta mensagem, o visitante recebe um novo identificador.</p>
-    `);
-    $("#visitorId").textContent="0002";
-    clicks=0;
-  }
-});
-
-$("#secretButton").addEventListener("click",()=>{
-  openModal("???","UNKNOWN FILE",`
-    <p>Você clicou no botão que não tinha função.</p>
-    <p>Isso foi anotado.</p>
-    <pre>EVENT / SECRET_CLICK / SAVED</pre>
-  `);
-});
+let clicks=0;$("#brandButton").addEventListener("click",()=>{if(++clicks===5){document.body.classList.add("flash");setTimeout(()=>document.body.classList.remove("flash"),220);state.visitor="0002";save();$("#visitorId").textContent="0002";openModal("Mensagem oculta","SYSTEM / NODE 02",'<p>Não era para você encontrar isso pelo logo.</p><pre>AINDA TEM ALGUÉM AQUI.</pre><p>Feche a janela e volte para o arquivo 003.</p>');clicks=0}});
+$("#secretButton").addEventListener("click",()=>{state.secretClicks++;save();openModal("???","UNKNOWN FILE",state.secretClicks===1?'<p>Você clicou no único botão sem explicação.</p><pre>EVENT / SECRET_CLICK / SAVED</pre>':'<p>Você já clicou aqui.</p><pre>EVENT / SECRET_CLICK / SAVED</pre><p style="color:#777">A página não esqueceu.</p>')});
+if(state.visits>1){$("#onlineText").textContent="ONLINE?";$("#connectionText").textContent="CONNECTION UNSTABLE";$("#visitorId").textContent=state.visitor}
