@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070707">
+  <meta name="description" content="THE LAST WEBSITE — uma investigação interativa.">
+  <title>THE LAST WEBSITE</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <main class="shell">
+    <header class="topbar">
+      <button class="brand" id="brandButton" aria-label="THE LAST WEBSITE">
+        <span class="brand-mark">TLW</span>
+        <span>
+          <strong>THE LAST WEBSITE</strong>
+          <small>NODE 01 / PUBLIC ACCESS</small>
+        </span>
+      </button>
+      <div class="status">
+        <span class="dot"></span>
+        <span id="clock">--:--:--</span>
+        <span class="divider">|</span>
+        <span>ONLINE</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">ARCHIVE NOTICE // 001</p>
+      <h1>Você chegou ao<br><span>último site.</span></h1>
+      <p class="intro">
+        Ninguém sabe quem deixou esta página aqui. Ninguém sabe por que ela ainda está online.
+        Explore antes que alguma coisa mude.
+      </p>
+
+      <div class="hero-actions">
+        <button class="primary" id="enterButton">ENTRAR NO ARQUIVO <span>→</span></button>
+        <button class="ghost" id="statusButton">VER STATUS</button>
+      </div>
+
+      <div class="notice">
+        <span class="notice-label">ÚLTIMO REGISTRO</span>
+        <span id="lastLog">05/10/2026 — 03:17:42 — conexão mantida.</span>
+      </div>
+    </section>
+
+    <section class="workspace" id="workspace" aria-hidden="true">
+      <div class="workspace-head">
+        <div>
+          <p class="eyebrow">ARQUIVO / NÍVEL 01</p>
+          <h2>O que ainda está aqui.</h2>
+        </div>
+        <button class="close" id="closeWorkspace">FECHAR ×</button>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <span class="card-id">FILE 001</span>
+          <h3>Mensagem de boas-vindas</h3>
+          <p>Um arquivo pequeno demais para ser importante.</p>
+          <button class="card-link" data-open="welcome">ABRIR ARQUIVO →</button>
+        </article>
+
+        <article class="card warning-card">
+          <span class="card-id">FILE 002</span>
+          <h3>DO_NOT_OPEN.txt</h3>
+          <p>O nome parece um aviso. O tamanho do arquivo diz 0 KB.</p>
+          <button class="card-link danger" data-open="forbidden">ABRIR ARQUIVO →</button>
+        </article>
+
+        <article class="card">
+          <span class="card-id">FILE 003</span>
+          <h3>Registro de visitantes</h3>
+          <p>Há apenas uma linha. A linha é de hoje.</p>
+          <button class="card-link" data-open="visitors">ABRIR ARQUIVO →</button>
+        </article>
+
+        <article class="card">
+          <span class="card-id">SYSTEM</span>
+          <h3>Terminal</h3>
+          <p>Alguns comandos respondem. Outros não deveriam.</p>
+          <button class="card-link" data-open="terminal">ABRIR TERMINAL →</button>
+        </article>
+      </div>
+    </section>
+
+    <section class="terminal-panel" id="terminalPanel" aria-hidden="true">
+      <div class="terminal-head">
+        <span>terminal://node01</span>
+        <button id="closeTerminal">×</button>
+      </div>
+      <div class="terminal-output" id="terminalOutput">
+        <div>THE LAST WEBSITE // TERMINAL</div>
+        <div>Digite <b>help</b> para listar comandos.</div>
+      </div>
+      <form id="terminalForm" class="terminal-form">
+        <span>&gt;</span>
+        <input id="terminalInput" autocomplete="off" spellcheck="false" aria-label="Comando">
+      </form>
+    </section>
+
+    <div class="modal" id="modal" aria-hidden="true">
+      <div class="modal-box">
+        <button class="modal-close" id="modalClose" aria-label="Fechar">×</button>
+        <p class="eyebrow" id="modalEyebrow">ARQUIVO</p>
+        <h2 id="modalTitle">Título</h2>
+        <div class="modal-content" id="modalContent"></div>
+      </div>
+    </div>
+
+    <footer>
+      <span>VISITOR <b id="visitorId">0001</b></span>
+      <span>CONNECTION STABLE</span>
+      <button id="secretButton">?</button>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

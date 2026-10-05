@@ -1,18 +1,13 @@
-# FNF-BREAKOUT
+# THE LAST WEBSITE
 
-Primeiro protótipo do mod de Friday Night Funkin'.
+Projeto web interativo de mistério, iniciado a partir do antigo repositório FNF-BREAKOUT.
 
-## Estado
-- Base Android/Psych Engine
-- Build automática pelo GitHub Actions
-- Estrutura de mod separada
-- História: ainda não definida
-- Personagens: protótipo inicial em preparação
+## Primeira versão
 
-## Próximas etapas
-1. Confirmar APK base.
-2. Adicionar KAI.
-3. Adicionar REX.
-4. Criar BREAKOUT.
-5. Criar cenário.
-6. Fazer chart.
+- Interface responsiva com estética de arquivo/sistema antigo.
+- Arquivo interativo com mensagens e registros.
+- Terminal fictício com comandos básicos.
+- Primeiros eventos secretos.
+- Tudo em HTML, CSS e JavaScript puro, sem dependências externas.
+
+A história e os sistemas serão expandidos por etapas para manter o projeto estável.
