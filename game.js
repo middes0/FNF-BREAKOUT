@@ -176,10 +176,20 @@ stick.addEventListener("pointermove",e=>{
 stick.addEventListener("pointerup",()=>{dragging=false;mobile.x=0;mobile.y=0;knob.style.transform=""});
 
 let lookDrag=false,lastX=0,lastY=0;
-document.querySelector("#look").addEventListener("pointerdown",e=>{lookDrag=true;lastX=e.clientX;lastY=e.clientY});
-document.querySelector("#look").addEventListener("pointermove",e=>{
+const look=document.querySelector("#look");
+function startLook(e){
+  if(e.target.closest("#stick")||e.target.closest("#interact"))return;
+  lookDrag=true;lastX=e.clientX;lastY=e.clientY;
+  if(e.pointerId!==undefined)document.body.setPointerCapture?.(e.pointerId);
+}
+function moveLook(e){
   if(!lookDrag)return;
-  yaw-=(e.clientX-lastX)*.012;pitch-=(e.clientY-lastY)*.012;
-  pitch=THREE.MathUtils.clamp(pitch,-1.35,1.35);lastX=e.clientX;lastY=e.clientY;
-});
-document.querySelector("#look").addEventListener("pointerup",()=>lookDrag=false);
+  yaw-=(e.clientX-lastX)*.009;pitch-=(e.clientY-lastY)*.009;
+  pitch=THREE.MathUtils.clamp(pitch,-1.35,1.35);
+  lastX=e.clientX;lastY=e.clientY;
+}
+function endLook(){lookDrag=false}
+document.addEventListener("pointerdown",startLook,{passive:true});
+document.addEventListener("pointermove",moveLook,{passive:true});
+document.addEventListener("pointerup",endLook,{passive:true});
+document.addEventListener("pointercancel",endLook,{passive:true});
