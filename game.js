@@ -697,18 +697,23 @@ stick.addEventListener("pointermove",e=>{
 stick.addEventListener("pointerup",()=>{dragging=false;mobile.x=0;mobile.y=0;knob.style.transform=""});
 stick.addEventListener("pointercancel",()=>{dragging=false;mobile.x=0;mobile.y=0;knob.style.transform=""});
 
-let lookDrag=false,lastX=0,lastY=0;
+let lookDrag=false,lookPointerId=null,lastX=0,lastY=0;
 function startLook(e){
   if(e.target.closest("#stick")||e.target.closest("#interact"))return;
-  lookDrag=true;lastX=e.clientX;lastY=e.clientY;
+  if(lookDrag)return;
+  lookDrag=true;lookPointerId=e.pointerId;lastX=e.clientX;lastY=e.clientY;
 }
 function moveLook(e){
-  if(!lookDrag)return;
+  // Cada dedo tem sua própria função: o dedo no joystick nunca gira a câmera.
+  if(!lookDrag||e.pointerId!==lookPointerId)return;
   yaw-=(e.clientX-lastX)*.009;pitch-=(e.clientY-lastY)*.009;
   pitch=THREE.MathUtils.clamp(pitch,-1.35,1.35);
   lastX=e.clientX;lastY=e.clientY;
 }
-function endLook(){lookDrag=false}
+function endLook(e){
+  if(e.pointerId!==lookPointerId)return;
+  lookDrag=false;lookPointerId=null;
+}
 document.addEventListener("pointerdown",startLook,{passive:true});
 document.addEventListener("pointermove",moveLook,{passive:true});
 document.addEventListener("pointerup",endLook,{passive:true});
