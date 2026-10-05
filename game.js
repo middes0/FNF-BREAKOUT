@@ -17,7 +17,7 @@ let ambienceNodes=[];
 let shiftStartedAt=0;
 let lastMinute=0;
 let yaw=0,pitch=0;
-let player=new THREE.Vector3(0,1.65,5.45);
+let player=new THREE.Vector3(0,1.9,5.45);
 const interactables=[];
 const colliders=[];
 const mobile={x:0,y:0};
@@ -484,8 +484,9 @@ function blockedAt(next){
   for(const c of colliders){
     const p=c.geometry.parameters;
     if(!p?.width||!p?.depth||!p?.height)continue;
-    const halfX=p.width/2+.32,halfZ=p.depth/2+.32;
-    if(Math.abs(next.x-c.position.x)<halfX&&Math.abs(next.z-c.position.z)<halfZ&&next.y>c.position.y-p.height/2-0.2&&next.y<c.position.y+p.height/2+0.2)return true;
+    const halfX=(p.width*c.scale.x)/2+.32,halfZ=(p.depth*c.scale.z)/2+.32;
+    const halfY=(p.height*c.scale.y)/2+.2;
+    if(Math.abs(next.x-c.position.x)<halfX&&Math.abs(next.z-c.position.z)<halfZ&&next.y>c.position.y-halfY&&next.y<c.position.y+halfY)return true;
   }
   return false;
 }
