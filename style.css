@@ -24,6 +24,7 @@ body{
 }
 button,input{font:inherit}
 button{color:inherit}
+a{color:inherit}
 .noise{
   position:fixed;inset:0;pointer-events:none;opacity:.04;z-index:20;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
@@ -118,9 +119,28 @@ h2{font-size:clamp(24px,4vw,42px);margin:0;letter-spacing:-.05em}
 }
 .modal-close{position:absolute;right:16px;top:12px}
 .modal-content{color:#9c9c9c;line-height:1.8;font-size:13px}
-.modal-content code,.modal-content pre{
+.modal-content code{color:#cfd7c7}
+.modal-content pre{
   color:var(--accent);background:#050505;border:1px solid #222;padding:14px;display:block;overflow:auto;
 }
+.modal-content .muted-note{color:#686868}
+.hidden-route{
+  margin-top:24px;
+  padding-top:18px;
+  border-top:1px solid #222;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.route-link{
+  color:var(--accent);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+.route-link:hover{text-decoration:underline}
+.hidden-route small{color:#555;font-size:10px}
 footer{
   border-top:1px solid var(--line);min-height:60px;display:flex;justify-content:space-between;align-items:center;
   color:#4f4f4f;font-size:9px;letter-spacing:.08em;gap:12px;
