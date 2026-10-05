@@ -17,7 +17,7 @@ rm -f "${MOD_DIR}/images/characters/KAI."{png,xml} "${MOD_DIR}/images/characters
 
 # Draw three original silhouettes directly with ImageMagick primitives.
 convert -size 400x520 xc:none \
-  -stroke "#08060d" -strokewidth 8 -fill "#09070d" -draw "ellipse 100,450 300,482" \
+  -stroke "#08060d" -strokewidth 8 -fill "#09070d" -draw "ellipse 200,466 100,18 0,360" \
   -fill "#18141f" -draw "polygon 126,306 184,333 171,443 112,443" \
   -fill "#18141f" -draw "polygon 274,306 216,333 229,443 288,443" \
   -fill "#28212e" -draw "roundrectangle 104,438 178,474 8,8" \
@@ -28,7 +28,7 @@ convert -size 400x520 xc:none \
   -fill "#1a1522" -draw "polygon 118,238 55,288 69,309 145,268" \
   -fill "#1a1522" -draw "polygon 282,238 345,288 331,309 255,268" \
   -fill "#b85eff" -draw "circle 61,300 73,312 circle 339,300 351,312" \
-  -fill "#7a4a34" -draw "ellipse 122,48 278,196" \
+  -fill "#7a4a34" -draw "ellipse 200,122 78,74 0,360" \
   -fill "#101016" -draw "polygon 123,111 136,45 177,67 199,28 222,65 267,41 280,111 246,90 228,112 202,81 177,113 153,89" \
   -fill "#7b3ff2" -draw "polygon 159,66 175,44 191,81 172,100" \
   -fill "#0d0b12" -draw "roundrectangle 136,123 264,147 10,10" \
@@ -38,7 +38,7 @@ convert -size 400x520 xc:none \
   "${MOD_DIR}/images/characters/KAI-base.png"
 
 convert -size 400x520 xc:none \
-  -stroke "#08060d" -strokewidth 9 -fill "#09070d" -draw "ellipse 72,450 328,484" \
+  -stroke "#08060d" -strokewidth 9 -fill "#09070d" -draw "ellipse 200,469 128,21 0,360" \
   -fill "#121017" -draw "polygon 130,328 188,346 176,448 116,448" \
   -fill "#121017" -draw "polygon 270,328 212,346 224,448 284,448" \
   -fill "#251d25" -draw "roundrectangle 106,440 184,478 9,9" \
@@ -49,7 +49,7 @@ convert -size 400x520 xc:none \
   -fill "#24151d" -draw "polygon 118,235 57,204 44,230 113,271" \
   -fill "#24151d" -draw "polygon 282,235 343,204 356,230 287,271" \
   -fill "#8c2842" -draw "circle 51,217 65,231 circle 349,217 363,231" \
-  -fill "#683f2e" -draw "ellipse 116,36 284,194" \
+  -fill "#683f2e" -draw "ellipse 200,115 84,79 0,360" \
   -fill "#181219" -draw "polygon 117,106 120,45 160,72 184,39 205,67 236,42 280,106 258,78 237,102 211,67 184,102 160,76 138,106" \
   -fill "#0c0a0f" -draw "roundrectangle 122,116 278,141 9,9" \
   -fill "#ffdbdf" -stroke none -draw "circle 164,128 169,133 circle 236,128 241,133" \
@@ -58,13 +58,13 @@ convert -size 400x520 xc:none \
   "${MOD_DIR}/images/characters/REX-base.png"
 
 convert -size 400x520 xc:none \
-  -stroke "#08060d" -strokewidth 9 -fill "#09070d" -draw "ellipse 108,430 292,464" \
+  -stroke "#08060d" -strokewidth 9 -fill "#09070d" -draw "ellipse 200,447 84,17 0,360" \
   -fill "#0d0b12" -draw "circle 200,250 333,383" \
   -fill "#7b3ff2" -draw "polygon 110,200 72,165 89,225 polygon 290,200 328,165 311,225 polygon 110,300 72,335 89,275 polygon 290,300 328,335 311,275" \
   -fill "#18131f" -draw "circle 200,250 309,359" \
   -fill "#09080e" -draw "circle 200,250 284,334" \
-  -fill "#161021" -draw "ellipse 146,204 254,296" \
-  -fill "#f5ecff" -stroke none -draw "ellipse 168,232 192,266 ellipse 208,232 232,266" \
+  -fill "#161021" -draw "ellipse 200,250 54,48 0,360" \
+  -fill "#f5ecff" -stroke none -draw "ellipse 180,249 12,16 0,360 ellipse 220,249 12,16 0,360" \
   -fill "#7b3ff2" -draw "circle 182,251 188,257 circle 222,251 228,257" \
   -fill none -stroke "#b85eff" -strokewidth 7 -draw "arc 170,258 230,312 210,330" \
   -fill none -stroke "#7b3ff2" -strokewidth 9 -draw "line 200,141 200,95" \
