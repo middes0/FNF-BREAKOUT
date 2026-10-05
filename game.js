@@ -122,7 +122,7 @@ function startGame(){
 function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
 function movement(dt){
   const dir=new THREE.Vector3();
-  const forward=(keys.w?1:0)-(keys.s?1:0)-mobile.y;
+  const forward=(keys.w?1:0)-(keys.s?1:0)+mobile.y;
   const side=(keys.d?1:0)-(keys.a?1:0)+mobile.x;
   dir.set(side,0,forward);
   if(dir.lengthSq()>0){
