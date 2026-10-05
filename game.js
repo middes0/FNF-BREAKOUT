@@ -393,6 +393,15 @@ function build(){
 
   addDecorations();
 
+  // Espaço maior para a loja: mantém todo o layout atual, mas dá
+  // mais distância entre as áreas e deixa a exploração menos apertada.
+  scene.traverse(o=>{
+    if(o!==scene && o.parent===scene && o!==camera && o!==renderer.domElement){
+      o.position.multiplyScalar(1.38);
+      o.scale.multiplyScalar(1.38);
+    }
+  });
+
   // relógio
   const clockMat=mat(0xf0f0ee,{roughness:.8});
   const clockFace=cylinder("relogio",[6.72,4.48,-6.79],.56,.08,clockMat,{interact:true});
@@ -483,7 +492,8 @@ function blockedAt(next){
 
 function movement(dt){
   const dir=new THREE.Vector3();
-  const forward=(keys.w?1:0)-(keys.s?1:0)-mobile.y;
+  // O eixo vertical do joystick segue a tela: tocar para cima = avançar.
+  const forward=(keys.s?1:0)-(keys.w?1:0)+mobile.y;
   const side=(keys.d?1:0)-(keys.a?1:0)+mobile.x;
   dir.set(side,0,forward);
   if(dir.lengthSq()>0){
@@ -491,8 +501,9 @@ function movement(dt){
     const next=player.clone().addScaledVector(dir,dt*3.2);
     if(!blockedAt(next))player.copy(next);
   }
-  player.x=THREE.MathUtils.clamp(player.x,-7.1,7.1);
-  player.z=THREE.MathUtils.clamp(player.z,-6.1,6.1);
+  // A loja foi ampliada; os limites acompanham o novo tamanho.
+  player.x=THREE.MathUtils.clamp(player.x,-10.7,10.7);
+  player.z=THREE.MathUtils.clamp(player.z,-9.1,9.1);
 }
 
 function updateClock(){
