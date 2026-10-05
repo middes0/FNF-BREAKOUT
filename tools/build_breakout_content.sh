@@ -239,6 +239,77 @@ PY
 # Clean CI-only metadata.
 rm -f "${MOD_DIR}/.generated_music_jobs"
 
+# --- Mobile mod update sync -------------------------------------------------
+# The mobile engine extracts bundled mods to external storage. Older versions
+# only restored missing files, so an installed BREAKOUT mod could keep stale
+# character assets forever. Compare pack metadata and force-refresh the bundled
+# mod when its version/content changes.
+STORAGE_HX="${ENGINE_DIR}/source/mobile/backend/StorageSystem.hx"
+python3 - "${STORAGE_HX}" <<'PY'
+from pathlib import Path
+import sys
+
+p = Path(sys.argv[1])
+s = p.read_text(encoding="utf-8")
+
+needle = "\tprivate static function startApkCopy():Void\n"
+helper = r'''\tprivate static function syncBundledModsIfNeeded():Int
+\t{
+\t\t#if mobile
+\t\tvar restored:Int = 0;
+\t\tvar installedPack:String = getDirectory() + "mods/BREAKOUT/pack.json";
+\t\tvar bundledPack:String = "mods/BREAKOUT/pack.json";
+\t\ttry
+\t\t{
+\t\t\tvar shouldSync:Bool = !FileSystem.exists(installedPack);
+\t\t\tif (!shouldSync && Assets.exists(bundledPack))
+\t\t\t{
+\t\t\t\tvar bundledText:String = Assets.getText(bundledPack);
+\t\t\t\tvar installedText:String = File.getContent(installedPack);
+\t\t\t\tshouldSync = (bundledText != installedText);
+\t\t\t}
+\t\t\tif (shouldSync)
+\t\t\t{
+\t\t\t\trestored = copyFromAPK("mods/", null, true);
+\t\t\t\ttrace('Bundled mod update applied: $restored files refreshed.');
+\t\t\t}
+\t\t}
+\t\tcatch (e:Dynamic)
+\t\t{
+\t\t\ttrace('Bundled mod sync error: $e');
+\t\t}
+\t\treturn restored;
+\t\t#else
+\t\treturn 0;
+\t\t#end
+\t}
+
+'''
+if "syncBundledModsIfNeeded" not in s:
+    if needle not in s:
+        raise SystemExit("StorageSystem marker not found; refusing to patch")
+    s = s.replace(needle, helper + needle, 1)
+
+old = """\t\t\t\ttrace("Running silent integrity check...");
+\t\t\t\tvar restoredAssets = copyFromAPK("assets/", null, false, getAssetsDirectory());
+\t\t\t\tvar restoredContent = copyFromAPK("mods/", null, false);
+\t\t\t\t
+\t\t\t\tif (restoredAssets > 0 || restoredContent > 0)"""
+new = """\t\t\t\ttrace("Running silent integrity check...");
+\t\t\t\tvar restoredAssets = copyFromAPK("assets/", null, false, getAssetsDirectory());
+\t\t\t\tvar restoredContent = copyFromAPK("mods/", null, false);
+\t\t\t\trestoredContent += syncBundledModsIfNeeded();
+\t\t\t\t
+\t\t\t\tif (restoredAssets > 0 || restoredContent > 0)"""
+if old not in s:
+    raise SystemExit("StorageSystem integrity snippet not found; refusing to patch")
+s = s.replace(old, new, 1)
+p.write_text(s, encoding="utf-8")
+print("StorageSystem mobile sync patch applied")
+PY
+
+grep -q "syncBundledModsIfNeeded" "${STORAGE_HX}"
+
 # Make the custom week discoverable even if the mod's week-list overlay is ignored.
 if ! grep -qxF "breakout" "${ASSETS}/data/weekList.txt"; then
   printf '\nbreakout\n' >> "${ASSETS}/data/weekList.txt"
