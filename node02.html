@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070707">
+  <title>NODE 02 / MIRROR</title>
+  <link rel="stylesheet" href="node02.css">
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <main class="mirror-shell" id="app">
+    <header class="mirror-top">
+      <div>
+        <p class="eyebrow">NODE 02 / MIRROR</p>
+        <strong>arquivo-espelho</strong>
+      </div>
+      <span id="mirrorState">CONNECTED</span>
+    </header>
+
+    <section class="mirror-hero">
+      <p class="file-tag">COPY // 002</p>
+      <h1>Esta cópia não devia estar acessível.</h1>
+      <p class="lead">Não tem menu. Não tem página inicial. Só apareceu porque alguém deixou o endereço salvo no terminal.</p>
+    </section>
+
+    <section class="recording-card">
+      <div class="recording-head">
+        <div>
+          <span class="file-tag">REC_001</span>
+          <h2>teste antes de fechar</h2>
+          <p>Arquivo de áudio encontrado junto da cópia.</p>
+        </div>
+        <div class="rec-status" id="recStatus">NOT PLAYED</div>
+      </div>
+
+      <div class="rec-player">
+        <button class="play-button" id="playButton" aria-label="Tocar gravação">▶</button>
+        <div class="wave" id="wave" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="rec-time" id="recTime">00:00 / 00:38</div>
+      </div>
+
+      <div class="transcript" id="transcript">
+        <p>O arquivo foi gravado em uma máquina antiga. A data no cabeçalho está ilegível.</p>
+        <p class="muted">Transcrição disponível depois da reprodução.</p>
+      </div>
+    </section>
+
+    <section class="notes">
+      <div class="note">
+        <span>NOTA</span>
+        <p>O computador costumava desligar sozinho quando ninguém estava usando.</p>
+      </div>
+      <div class="note">
+        <span>NOTA</span>
+        <p>Não havia motivo para manter duas cópias do mesmo arquivo.</p>
+      </div>
+    </section>
+
+    <footer>
+      <a href="index.html">← VOLTAR AO NODE 01</a>
+      <span>VISITOR <b id="visitor">0001</b></span>
+    </footer>
+  </main>
+
+  <script src="node02.js"></script>
+</body>
+</html>
