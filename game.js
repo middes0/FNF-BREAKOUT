@@ -8,7 +8,7 @@ const clockEl=document.querySelector("#clock");
 const messageEl=document.querySelector("#message");
 
 let scene,camera,renderer,clock;
-let started=false,lightsOn=false,cleaned=false,phase=0;
+let started=false,lightsOn=true,cleaned=false,phase=1;
 let keys={};
 let yaw=0,pitch=0;
 let player=new THREE.Vector3(0,1.65,6);
@@ -94,11 +94,6 @@ function showMessage(t){
 function setTask(t){taskEl.textContent=t}
 
 function interact(){
-  if(!lightsOn){
-    const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);
-    const hit=ray.intersectObjects(interactables,false)[0];
-    if(hit&&hit.object.name==="lamp"){setLights(true);phase=1;setTask("Vá até o caixa e ligue o sistema.");showMessage("As luzes acenderam. Melhor.");return;}
-  }
   const ray=new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0,0),camera);
   const hits=ray.intersectObjects(interactables,false);
@@ -113,7 +108,7 @@ function interact(){
 function startGame(){
   if(started)return;
   started=true; start.style.display="none";
-  setLights(false); phase=0; setTask("Ligue as luzes da loja.");
+  setLights(true); phase=1; setTask("Vá até o caixa e ligue o sistema.");
   if(innerWidth<=700)document.body.classList.add("mobile-on");
   requestAnimationFrame(loop);
   showMessage("A loja está escura. Você sabe onde fica o interruptor.");
