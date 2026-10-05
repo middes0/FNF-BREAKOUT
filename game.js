@@ -38,7 +38,8 @@ function build(){
   renderer.shadowMap.enabled=true;
   game.appendChild(renderer.domElement);
 
-  scene.add(new THREE.HemisphereLight(0xb8bec8,0x20242a,.75));
+  scene.add(new THREE.AmbientLight(0xffffff,1.8));
+  scene.add(new THREE.HemisphereLight(0xffffff,0x555555,1.2));
 
   const floor=box("floor",[0,0,0],[16,.2,14],0x202020);
   floor.receiveShadow=true;
@@ -67,7 +68,7 @@ function build(){
 
   // luzes no teto
   for(let x of [-5,0,5]){
-    const l=new THREE.PointLight(0xfff4dc,1.8,11,1.7);
+    const l=new THREE.PointLight(0xffffff,2.5,16,1.2);
     l.position.set(x,5.5,0); l.castShadow=true; l.userData.shopLight=true; scene.add(l);
     const fixture=box("lamp",[x,5.65,0],[2,.08,.35],0x383838);
     fixture.userData.light=l;
@@ -81,9 +82,9 @@ function build(){
 
 function setLights(on){
   lightsOn=on;
-  scene.traverse(o=>{if(o.userData?.shopLight)o.intensity=on?1.8:0});
-  scene.background.set(on?0x16181b:0x101216);
-  scene.fog.color.set(on?0x16181b:0x101216);
+  scene.traverse(o=>{if(o.userData?.shopLight)o.intensity=on?2.5:0});
+  scene.background.set(on?0x202328:0x1b1d21);
+  scene.fog.color.set(on?0x202328:0x1b1d21);
 }
 
 function showMessage(t){
