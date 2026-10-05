@@ -161,6 +161,59 @@ function addProductLine(x,z,type){
   }
 }
 
+function addAisleRow(x,z,length,types){
+  const metal=mat(0x303538,{texture:"metal",roughness:.58,metalness:.28});
+  box("aisleBack",[x,1.68,z],[.14,3.25,length],{material:metal,collider:true});
+  for(const y of [.58,1.27,1.96,2.65]){
+    box("aisleShelf",[x,y,z],[1.18,.08,length],{material:mat(0x2b2f31,{texture:"shelf",roughness:.72})});
+  }
+  for(const side of [-.54,.54]){
+    box("aislePost",[x+side,1.62,z],[.08,3.15,length+.05],{material:metal});
+  }
+
+  const colors={
+    soda:0xc44747,water:0x4d86c6,snack:0xd0a24a,milk:0xe5e2d8,energy:0x8f77c9,cereal:0x71964e
+  };
+  const steps=Math.max(4,Math.floor(length/0.62));
+  for(let i=0;i<steps;i++){
+    const pz=z-length/2+.35+i*(length-.7)/Math.max(1,steps-1);
+    for(const side of [-1,1]){
+      const type=types[(i+(side===1?1:0))%types.length];
+      for(const y of [1.0,1.68,2.36]){
+        box("produtoAisle",[x+side*.64,y,pz],[.24,.34,.34],{
+          color:colors[type],texture:"label-"+type,roughness:.55
+        });
+      }
+    }
+  }
+
+  textPlane("CORREDOR", [x,3.6,z-length/2+.15],[1.9,.36],"#f0f2f3","rgba(28,31,33,.9)");
+}
+
+function addStockAndServiceArea(){
+  // Pequeno estoque visível ao fundo, com caixas e paletes.
+  box("pallet",[6.35,.18,-5.85],[2.3,.22,1.55],{color:0x4a4037,texture:"wood",roughness:.85,collider:true});
+  for(const [x,z,y,sx,sz] of [
+    [5.65,-5.85,.62,.72,.58],[6.45,-5.85,.62,.72,.58],[7.25,-5.85,.62,.72,.58],
+    [5.85,-5.35,1.18,.7,.55],[6.65,-5.35,1.18,.7,.55],[7.2,-5.35,1.18,.6,.5]
+  ]){
+    box("caixaEstoque",[x,y,z],[sx,.58,sz],{color:0x665646,texture:"wood",roughness:.86,collider:true});
+  }
+  textPlane("ESTOQUE",[6.35,3.15,-6.32],[2.1,.42],"#e8edf0","rgba(35,38,40,.94)");
+
+  // Banheiro/serviço como área visual secundária.
+  box("serviceDoor",[-6.15,2.05,-6.66],[2.1,4.15,.13],{color:0x3a3f42,texture:"metal",roughness:.55,collider:true});
+  box("serviceHandle",[-5.45,1.95,-6.56],[.08,.55,.08],{color:0x8f77c9,texture:"metal",roughness:.3,metalness:.65});
+  textPlane("BANHEIRO",[ -6.15,4.55,-6.58],[2.25,.5],"#edf0f1","rgba(35,38,40,.94)");
+
+  // Carrinhos e área de entrada.
+  for(const x of [2.35,2.85,3.35]){
+    box("carrinho",[x,.62,5.15],[.62,.5,1.05],{color:0x4a5053,texture:"metal",roughness:.55,metalness:.22});
+    for(const z of [4.7,5.55]) cylinder("rodaCarrinho",[x,.28,z],.1,.08,mat(0x181b1d,{metalness:.35,roughness:.45}));
+  }
+  textPlane("ENTRADA",[3.0,2.25,5.78],[2.0,.4],"#f0f2f3","rgba(35,38,40,.9)");
+}
+
 function addShelfUnit(x,z){
   const metal=mat(0x313638,{texture:"metal",roughness:.64,metalness:.25});
   box("shelfFrame",[x,1.55,z],[1.15,3.1,.72],{material:metal,collider:true});
@@ -239,6 +292,9 @@ function addDecorations(){
   addCamera(7.45,-5.9,.35);
   box("painelParede",[-7.8,2.6,-2.6],[.05,1.25,.85],{color:0x202428,texture:"metal",metalness:.35,roughness:.5});
   for(let y=2.2;y<=2.9;y+=.24) addCylinderProp("painelLed",[-7.72,y,-2.6],.035,.08,0x8f77c9,{roughness:.25});
+
+  addStockAndServiceArea();
+  addBasket(4.15,5.25);
 }
 
 function createAmbientAudio(){
@@ -314,7 +370,7 @@ function updateRoutine(){
 function build(){
   scene=new THREE.Scene();
   scene.background=new THREE.Color(0x202328);
-  scene.fog=new THREE.Fog(0x202328,13,34);
+  scene.fog=new THREE.Fog(0x202328,17,42);
 
   camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.05,100);
   camera.rotation.order="YXZ";
@@ -358,15 +414,9 @@ function build(){
   addFridge(-1.45);
   addFridge(1.45);
 
-  // ilha central baixa para snacks
-  for(const z of [.2,2.2]){
-    box("island",[0,1.05,z],[3.8,2,.75],{color:0xffffff,texture:"shelf",collider:true});
-    box("islandTop",[0,2.08,z],[4,.14,.82],{color:0x8f77c9});
-    for(const x of [-1.35,-.9,-.45,0,.45,.9,1.35]){
-      box("snackBox",[x,1.34,z-.05],[.28,.42,.45],{color:0xd0a24a,texture:"label-snack",roughness:.55});
-      box("snackBox2",[x,1.58,z+.12],[.28,.32,.42],{color:0x4d86c6,texture:"label-water",roughness:.55});
-    }
-  }
+  // Dois corredores altos substituem as ilhas baixas e organizam a área central.
+  addAisleRow(-2.05,1.05,4.7,["cereal","snack"]);
+  addAisleRow(2.05,1.05,4.7,["milk","energy"]);
 
   // porta de entrada
   box("moldura",[0,2,6.82],[3.6,4.55,.26],{color:0x272b2d,texture:"metal",collider:true});
