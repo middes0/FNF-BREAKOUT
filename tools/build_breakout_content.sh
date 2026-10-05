@@ -253,7 +253,7 @@ p = Path(sys.argv[1])
 s = p.read_text(encoding="utf-8")
 
 needle = "\tprivate static function startApkCopy():Void\n"
-helper = r'''\tprivate static function syncBundledModsIfNeeded():Int
+helper = '''\tprivate static function syncBundledModsIfNeeded():Int
 \t{
 \t\t#if mobile
 \t\tvar restored:Int = 0;
