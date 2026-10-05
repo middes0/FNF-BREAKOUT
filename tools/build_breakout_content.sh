@@ -258,6 +258,7 @@ with (out.parent / "breakout-hard.json").open("w", encoding="utf-8") as f:
     json.dump(hard, f, separators=(",", ":"))
 (mod / ".music_jobs").open("w", encoding="utf-8").write("breakout|150|60.0\n")
 
+for source, folder, title in charts[1:]:
     src = assets / "data" / source / f"{source}.json"
     with src.open(encoding="utf-8") as f:
         data = json.load(f)
