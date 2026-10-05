@@ -13,9 +13,9 @@ command -v convert >/dev/null 2>&1 || { echo "ImageMagick não encontrado"; exit
 command -v ffmpeg >/dev/null 2>&1 || { echo "FFmpeg não encontrado"; exit 1; }
 
 # --- Character art (ORIGINAL, no FNF base sprites) -------------------------
-rm -f "\${MOD_DIR}/images/characters/KAI."{png,xml} "\${MOD_DIR}/images/characters/REX."{png,xml} "\${MOD_DIR}/images/characters/NOVA."{png,xml}
+rm -f "${MOD_DIR}/images/characters/KAI."{png,xml} "${MOD_DIR}/images/characters/REX."{png,xml} "${MOD_DIR}/images/characters/NOVA."{png,xml}
 
-python3 - "\${MOD_DIR}/images/characters" <<'PY'
+python3 - "${MOD_DIR}/images/characters" <<'PY'
 from pathlib import Path
 import math, subprocess, sys
 
@@ -84,7 +84,7 @@ PY
 
 # Overwrite the character definitions and MOD version so the generated package
 # never depends on the old Boyfriend/Daddy/GF animation names.
-python3 - "\${MOD_DIR}/characters" "\${MOD_DIR}/pack.json" <<'PY'
+python3 - "${MOD_DIR}/characters" "${MOD_DIR}/pack.json" <<'PY'
 import json, pathlib, sys
 c=pathlib.Path(sys.argv[1]); p=pathlib.Path(sys.argv[2])
 def base(anims,image,pos,icon,color,flip,scale,sing):
@@ -98,7 +98,7 @@ for k,v in defs.items(): (c/f"{k}.json").write_text(json.dumps(v,indent=2)+"\\n"
 pack=json.loads(p.read_text(encoding="utf-8")); pack["version"]="0.4.0"; pack["description"]="BREAKOUT — KAI, REX e NOVA com arte original. Música preservada nesta versão."; p.write_text(json.dumps(pack,indent=2)+"\\n",encoding="utf-8")
 PY
 
-find "\${MOD_DIR}/images/characters" -maxdepth 1 -type f ! -name 'KAI.png' ! -name 'KAI.xml' ! -name 'REX.png' ! -name 'REX.xml' ! -name 'NOVA.png' ! -name 'NOVA.xml' -delete
+find "${MOD_DIR}/images/characters" -maxdepth 1 -type f ! -name 'KAI.png' ! -name 'KAI.xml' ! -name 'REX.png' ! -name 'REX.xml' ! -name 'NOVA.png' ! -name 'NOVA.xml' -delete
 
 # --- Custom stage art ------------------------------------------------------
 convert -size 1280x720 gradient:"#07030d-#2d0a48" "${MOD_DIR}/images/breakout-bg.png"
