@@ -95,6 +95,20 @@ jobs:
           test -f example_mods/BREAKOUT/songs/neon-run/Inst.ogg
           test -f art/iconApp.png
 
+      - name: Package standalone Psych Engine MOD
+        working-directory: engine/example_mods
+        run: |
+          rm -f ../../FNF-BREAKOUT-MOD.zip
+          zip -r ../../FNF-BREAKOUT-MOD.zip BREAKOUT
+          test -s ../../FNF-BREAKOUT-MOD.zip
+
+      - name: Upload standalone MOD
+        uses: actions/upload-artifact@v4
+        with:
+          name: FNF-BREAKOUT-MOD
+          path: FNF-BREAKOUT-MOD.zip
+          if-no-files-found: error
+
       - name: Verify mod was bundled
         working-directory: engine
         run: |
