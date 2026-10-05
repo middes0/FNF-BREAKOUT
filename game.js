@@ -214,6 +214,66 @@ function addStockAndServiceArea(){
   textPlane("ENTRADA",[3.0,2.25,5.78],[2.0,.4],"#f0f2f3","rgba(35,38,40,.9)");
 }
 
+function smallLabel(text,pos,size,rotationY=Math.PI,bg="rgba(245,245,242,.96)",color="#222"){
+  const mesh=textPlane(text,pos,size,color,bg);
+  mesh.rotation.y=rotationY;
+  return mesh;
+}
+
+function addShelfPriceTags(){
+  const tags=[
+    [-5.5,.72,-1.7,"R$ 6,49"],[-5.5,1.42,-1.7,"R$ 4,99"],[-5.5,2.12,-1.7,"R$ 7,49"],
+    [-5.5,.72,1.0,"R$ 5,99"],[-5.5,1.42,1.0,"R$ 8,49"],[-5.5,2.12,1.0,"R$ 3,99"],
+    [5.5,.72,-1.7,"R$ 7,99"],[5.5,1.42,-1.7,"R$ 10,49"],[5.5,2.12,-1.7,"R$ 12,99"],
+    [5.5,.72,1.0,"R$ 4,49"],[5.5,1.42,1.0,"R$ 6,99"],[5.5,2.12,1.0,"R$ 9,49"]
+  ];
+  for(const [x,y,z,t] of tags) smallLabel(t,[x,y,z],[.62,.22],x<0?-Math.PI/2:Math.PI/2);
+  
+  // Etiquetas de preço nos dois novos corredores, voltadas para cada lado.
+  for(const x of [-2.72,1.38,2.72,-1.38]){
+    const side=x<0?Math.PI/2:-Math.PI/2;
+    for(const z of [-.45,1.0,2.45]){
+      smallLabel(z<0?"R$ 11,90":"R$ 5,50",[x,1.05,z],[.58,.2],side);
+    }
+  }
+}
+
+function addCheckoutDetails(){
+  const dark=mat(0x15181a,{texture:"metal",roughness:.38,metalness:.42});
+  const white=mat(0xdfe2e4,{roughness:.34,metalness:.05});
+  // Impressora/terminal e rolo de recibos.
+  box("terminalCaixa",[.02,2.82,-3.58],[.55,.12,.42],{material:dark});
+  box("printer",[ -.32,2.29,-3.52],[.34,.28,.36],{material:white});
+  cylinder("papelRecibo",[-.32,2.47,-3.34],.08,.11,mat(0xf1f1ee,{roughness:.72}));
+  // Sacolas e suporte.
+  box("suporteSacolas",[1.05,1.72,-3.62],[.35,.85,.5],{material:dark,collider:true});
+  for(let y=1.52;y<=2.08;y+=.19){
+    box("sacola",[1.05,y,-3.31],[.23,.14,.05],{color:0xbfc3c5,roughness:.72});
+  }
+  // Área de saída do cliente.
+  box("balcaoApoio",[0,1.0,-2.95],[2.1,1.8,.62],{color:0x34383b,texture:"wood",roughness:.7});
+  smallLabel("PAGUE AQUI", [0,2.02,-2.62],[1.7,.34],Math.PI,"rgba(25,28,30,.92)","#f0f2f3");
+  // Faixa de piso para orientar a fila.
+  for(const z of [-2.15,-1.45,-.75]){
+    box("filaMarca",[0,.115,z],[2.4,.025,.08],{color:0x8f77c9,roughness:.55});
+  }
+}
+
+function addStoreDetails(){
+  // Lixeiras e pequenos avisos em pontos de circulação.
+  smallLabel("RECICLAGEM",[7.35,2.05,2.4],[1.55,.34],Math.PI,"rgba(35,38,40,.9)","#e8edf0");
+  smallLabel("ATENÇÃO AO PISO MOLHADO",[-7.35,1.75,3.0],[2.35,.34],Math.PI,"rgba(35,38,40,.9)","#e8edf0");
+  
+  // Relógio de parede complementar.
+  box("wallClockPanel",[7.42,3.45,-2.0],[.12,1.05,1.5],{color:0x25292c,texture:"metal",roughness:.58});
+  cylinder("wallClockFace",[7.32,3.45,-2.0],.45,.06,mat(0xe8e7e2,{roughness:.8}));
+  // Bancada de apoio com caixas pequenas.
+  box("apoioEstoque",[6.35,1.1,-5.15],[1.7,.18,.72],{color:0x3e4447,texture:"metal",roughness:.62,metalness:.25});
+  for(const x of [5.8,6.35,6.9]){
+    box("miniCaixa",[x,1.43,-5.15],[.42,.48,.42],{color:0x665646,texture:"wood",roughness:.86});
+  }
+}
+
 function addShelfUnit(x,z){
   const metal=mat(0x313638,{texture:"metal",roughness:.64,metalness:.25});
   box("shelfFrame",[x,1.55,z],[1.15,3.1,.72],{material:metal,collider:true});
@@ -295,6 +355,7 @@ function addDecorations(){
 
   addStockAndServiceArea();
   addBasket(4.15,5.25);
+  addStoreDetails();
 }
 
 function createAmbientAudio(){
@@ -403,6 +464,7 @@ function build(){
   box("screen",[0,2.65,-3.72],[.5,.26,.08],{color:0x8f77c9});
   cylinder("scanner",[.56,2.34,-3.78],.1,.22,mat(0x33383b,{metalness:.45,roughness:.3}));
   textPlane("CAIXA",[0,2.82,-3.24],[1.5,.35],"#ffffff","rgba(20,20,22,.82)");
+  addCheckoutDetails();
 
   // estantes laterais
   for(const z of [-.5,2.15,4.35]){
@@ -417,6 +479,7 @@ function build(){
   // Dois corredores altos substituem as ilhas baixas e organizam a área central.
   addAisleRow(-2.05,1.05,4.7,["cereal","snack"]);
   addAisleRow(2.05,1.05,4.7,["milk","energy"]);
+  addShelfPriceTags();
 
   // porta de entrada
   box("moldura",[0,2,6.82],[3.6,4.55,.26],{color:0x272b2d,texture:"metal",collider:true});
