@@ -20,38 +20,38 @@ if(!state.node2Unlocked){
 }else{
   visitorLabel.textContent=state.visitor||"0001";
 
-  const formatClock=d=>[d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,"0")).join(":");
-
   let playing=false;
   let timer=null;
   let audioContext=null;
 
   function futureTimestamp(){
     const d=new Date(Date.now()+120000);
-    return formatClock(d);
+    return [d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,"0")).join(":");
   }
 
-  function markPlayed(){
-    state.recordingPlayed=true;
-    state.impossibleTime=futureTimestamp();
-    localStorage.setItem(KEY,JSON.stringify(state));
+  function revealTranscript(){
     status.textContent="PLAYED";
     status.classList.remove("playing");
     wave.classList.remove("active");
     button.classList.remove("playing");
     button.textContent="↻";
-    timeLabel.textContent="00:38 / 00:38";
+    timeLabel.textContent="00:12 / 00:12";
     transcript.classList.add("revealed");
     transcript.innerHTML=
       '<p class="line"><span class="time">00:00</span>teste... um, dois.</p>'+
-      '<p class="line"><span class="time">00:06</span>não sei se isso tá gravando.</p>'+
-      '<p class="line"><span class="time">00:12</span>beleza.</p>'+
-      '<p class="line"><span class="time">00:18</span>[ruído]</p>'+
-      '<p class="line"><span class="time">00:21</span>espera.</p>'+
-      '<p class="line"><span class="time">00:24</span>o horário do computador tá errado de novo.</p>'+
-      '<p class="line"><span class="time">00:31</span>eu vou deixar assim por enquanto.</p>'+
-      '<p class="line"><span class="time">00:36</span>[clique]</p>'+
+      '<p class="line"><span class="time">00:02</span>não sei se isso tá gravando.</p>'+
+      '<p class="line"><span class="time">00:04</span>beleza.</p>'+
+      '<p class="line"><span class="time">00:06</span>[ruído]</p>'+
+      '<p class="line"><span class="time">00:08</span>espera. o horário do computador tá errado de novo.</p>'+
+      '<p class="line"><span class="time">00:11</span>[clique]</p>'+
       '<p class="muted">Depois do clique não há mais áudio.</p>';
+  }
+
+  function markPlayed(){
+    state.recordingPlayed=true;
+    if(!state.impossibleTime)state.impossibleTime=futureTimestamp();
+    localStorage.setItem(KEY,JSON.stringify(state));
+    revealTranscript();
   }
 
   function clickTone(ctx,t,freq,duration){
@@ -80,19 +80,18 @@ if(!state.node2Unlocked){
       audioContext=audioContext||new (window.AudioContext||window.webkitAudioContext)();
       const start=audioContext.currentTime+.05;
       clickTone(audioContext,start,880,.12);
-      clickTone(audioContext,start+1.1,440,.16);
+      clickTone(audioContext,start+.75,440,.16);
       clickTone(audioContext,start+2.4,110,.35);
-      clickTone(audioContext,start+7.8,98,.4);
-      clickTone(audioContext,start+18.3,92,.55);
-      clickTone(audioContext,start+36.0,74,.15);
+      clickTone(audioContext,start+5.8,98,.45);
+      clickTone(audioContext,start+10.7,74,.15);
     }catch{}
 
     let seconds=0;
     clearInterval(timer);
     timer=setInterval(()=>{
       seconds++;
-      timeLabel.textContent="00:"+String(Math.min(seconds,38)).padStart(2,"0")+" / 00:38";
-      if(seconds>=38){
+      timeLabel.textContent="00:"+String(Math.min(seconds,12)).padStart(2,"0")+" / 00:12";
+      if(seconds>=12){
         clearInterval(timer);
         playing=false;
         markPlayed();
@@ -102,13 +101,11 @@ if(!state.node2Unlocked){
 
   button.addEventListener("click",()=>{
     if(state.recordingPlayed){
-      transcript.classList.add("revealed");
+      revealTranscript();
       return;
     }
     playRecording();
   });
 
-  if(state.recordingPlayed){
-    markPlayed();
-  }
+  if(state.recordingPlayed)revealTranscript();
 }
