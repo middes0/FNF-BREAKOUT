@@ -10,6 +10,9 @@ const promptEl=document.querySelector("#prompt");
 
 let scene,camera,renderer,clock;
 let started=false,lightsOn=true,phase=1;
+let anomalyTriggered=false;
+let explorationStartedAt=0;
+const shopLights=[];
 let keys={};
 let audioCtx=null;
 let audioStarted=false;
@@ -423,14 +426,46 @@ function subtleWhisper(){
   osc.connect(filter).connect(gain).connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+1.6);
 }
 
+function subtleKnock(){
+  soundTone(82,.16,"triangle",.018);
+  setTimeout(()=>soundTone(61,.22,"triangle",.012),125);
+}
+
+function triggerFirstAnomaly(){
+  if(anomalyTriggered||!audioCtx)return;
+  anomalyTriggered=true;
+  showMessage("Você ouviu um barulho vindo do fundo da loja.");
+  subtleKnock();
+  setTask("Continue a ronda pela loja.");
+
+  const target=shopLights[2]||shopLights[1]||shopLights[0];
+  if(!target)return;
+  const original=target.intensity;
+  const flickers=[0,.11,.24,.38,.52,.7,1.02];
+  const values=[0.18,original,0.06,original,0.12,original*0.42,original];
+  flickers.forEach((delay,i)=>{
+    setTimeout(()=>{
+      if(lightsOn)target.intensity=values[i];
+    },delay*1000);
+  });
+}
+
 function updateRoutine(){
-  if(!started||phase!==4)return;
-  const elapsed=(performance.now()-shiftStartedAt)/1000;
-  if(elapsed>12&&phase===4){
-    phase=5;
-    setTask("Faça uma última ronda na loja.");
-    showMessage("A loja está pronta. Faça uma última verificação.");
-    soundTone(330,.14,"triangle",.025);
+  if(!started)return;
+
+  if(phase===4){
+    const elapsed=(performance.now()-shiftStartedAt)/1000;
+    if(elapsed>12&&phase===4){
+      phase=5;
+      setTask("Faça uma última ronda na loja.");
+      showMessage("A loja está pronta. Faça uma última verificação.");
+      soundTone(330,.14,"triangle",.025);
+    }
+  }
+
+  if(phase===6&&!anomalyTriggered){
+    const elapsed=(performance.now()-explorationStartedAt)/1000;
+    if(elapsed>18)triggerFirstAnomaly();
   }
 }
 
@@ -505,7 +540,7 @@ function build(){
   // luminárias — mesma intensidade aprovada
   for(const x of [-5,0,5]){
     const l=new THREE.PointLight(0xffffff,2.5,16,1.2);
-    l.position.set(x,5.55,0);l.castShadow=true;l.userData.shopLight=true;scene.add(l);
+    l.position.set(x,5.55,0);l.castShadow=true;l.userData.shopLight=true;scene.add(l);shopLights.push(l);
     const fixture=box("lamp",[x,5.64,0],[2.25,.08,.42],{color:0x45494c,texture:"metal",roughness:.5});
     box("lampGlow",[x,5.57,0],[1.5,.03,.18],{color:0xf5f7f7,roughness:.2});
     fixture.userData.light=l;
@@ -571,7 +606,7 @@ function interact(){
     soundInteraction();
     if(phase===1){phase=2;setTask("Confira se a porta está trancada.");showMessage("Caixa ligado. Tudo parece normal.");}
     else if(phase===3){phase=4;shiftStartedAt=performance.now();setTask("Aguarde o início do turno.");showMessage("Tudo pronto. Agora é só esperar.");}
-    else if(phase===5){phase=6;setTask("Explore a loja. Você está livre para andar.");showMessage("O monitor registrou uma falha rápida. O resto do turno é com você.");subtleWhisper();}
+    else if(phase===5){phase=6;explorationStartedAt=performance.now();setTask("Explore a loja. Você está livre para andar.");showMessage("O monitor registrou uma falha rápida. O resto do turno é com você.");subtleWhisper();}
     else showMessage("O caixa já está ligado.");
     return;
   }
@@ -585,7 +620,8 @@ function interact(){
   if(o.name==="relogio"){soundInteraction();showMessage("22:00. Você acabou de chegar.");return}
   if(o.name==="screen"){
     soundInteraction();
-    if(phase>=6)showMessage("O monitor mostra apenas as câmeras da loja.");
+    if(phase>=6&&anomalyTriggered)showMessage("A câmera 03 perdeu o sinal por alguns segundos.");
+    else if(phase>=6)showMessage("O monitor mostra apenas as câmeras da loja.");
     else showMessage("O monitor ainda está iniciando.");
     return;
   }
