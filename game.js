@@ -202,7 +202,7 @@ function addStockAndServiceArea(){
   textPlane("ESTOQUE",[6.35,3.15,-6.32],[2.1,.42],"#e8edf0","rgba(35,38,40,.94)");
 
   // Banheiro/serviço como área visual secundária.
-  box("serviceDoor",[-6.15,2.05,-6.66],[2.1,4.15,.13],{color:0x3a3f42,texture:"metal",roughness:.55,collider:true});
+  box("serviceDoor",[-6.15,2.05,-6.66],[2.1,4.15,.13],{color:0x3a3f42,texture:"metal",roughness:.55,collider:true,interact:true});
   box("serviceHandle",[-5.45,1.95,-6.56],[.08,.55,.08],{color:0x8f77c9,texture:"metal",roughness:.3,metalness:.65});
   textPlane("BANHEIRO",[ -6.15,4.55,-6.58],[2.25,.5],"#edf0f1","rgba(35,38,40,.94)");
 
@@ -259,6 +259,12 @@ function addCheckoutDetails(){
   }
 }
 
+function addExplorationPoints(){
+  // Pontos opcionais para examinar durante a exploração livre.
+  const screen=document.getElementById("screen");
+  const panel=document.getElementById("painelParede");
+}
+
 function addStoreDetails(){
   // Lixeiras e pequenos avisos em pontos de circulação.
   smallLabel("RECICLAGEM",[7.35,2.05,2.4],[1.55,.34],Math.PI,"rgba(35,38,40,.9)","#e8edf0");
@@ -292,7 +298,7 @@ function addFridge(x){
   box("geladeiraBody",[x,2,-4.9],[2.3,4,.9],{material:body,collider:true});
   const glass=mat(0xbcc8d4,{texture:"glass",roughness:.18,metalness:.05});
   for(let i=-1;i<=1;i++){
-    box("fridgeDoor",[x+i*.67,2,-4.43],[.6,3.55,.035],{material:glass});
+    box("fridgeDoor",[x+i*.67,2,-4.43],[.6,3.55,.035],{material:glass,interact:true});
     box("fridgeFrame",[x+i*.67,2,-4.48],[.07,3.75,.08],{material:body});
     for(let y of [1,1.9,2.8,3.55]){
       cylinder("bebida",[x+i*.67,y,-4.38],.07,.34,mat(0x79a8ce,{roughness:.4}));
@@ -350,12 +356,13 @@ function addDecorations(){
   // câmera de segurança e pequenos detalhes
   addCamera(-7.45,-5.9,-.35);
   addCamera(7.45,-5.9,.35);
-  box("painelParede",[-7.8,2.6,-2.6],[.05,1.25,.85],{color:0x202428,texture:"metal",metalness:.35,roughness:.5});
+  box("painelParede",[-7.8,2.6,-2.6],[.05,1.25,.85],{color:0x202428,texture:"metal",metalness:.35,roughness:.5,interact:true});
   for(let y=2.2;y<=2.9;y+=.24) addCylinderProp("painelLed",[-7.72,y,-2.6],.035,.08,0x8f77c9,{roughness:.25});
 
   addStockAndServiceArea();
   addBasket(4.15,5.25);
   addStoreDetails();
+  addExplorationPoints();
 }
 
 function createAmbientAudio(){
@@ -461,7 +468,7 @@ function build(){
   box("balcaoTop",[0,2.08,-3.72],[5.75,.16,1.08],{color:0xddd9d3,texture:"wood",roughness:.62});
   box("balcaoTrim",[0,1.55,-3.21],[5.25,.12,.08],{color:0x8f77c9});
   box("caixa",[0,2.34,-3.72],[.78,.42,.65],{color:0x1b1d20,texture:"metal",roughness:.4,metalness:.35,interact:true});
-  box("screen",[0,2.65,-3.72],[.5,.26,.08],{color:0x8f77c9});
+  box("screen",[0,2.65,-3.72],[.5,.26,.08],{color:0x8f77c9,interact:true});
   cylinder("scanner",[.56,2.34,-3.78],.1,.22,mat(0x33383b,{metalness:.45,roughness:.3}));
   textPlane("CAIXA",[0,2.82,-3.24],[1.5,.35],"#ffffff","rgba(20,20,22,.82)");
   addCheckoutDetails();
@@ -539,7 +546,7 @@ function showMessage(t){
 function setTask(t){taskEl.textContent=t}
 
 function targetName(o){
-  const names={caixa:"CAIXA",porta:"PORTA",relogio:"RELÓGIO"};
+  const names={caixa:"CAIXA",porta:"PORTA",relogio:"RELÓGIO",screen:"MONITOR",fridgeDoor:"GELADEIRA",serviceDoor:"BANHEIRO",painelParede:"PAINEL"};
   return names[o.name]||"INTERAGIR";
 }
 
@@ -548,7 +555,7 @@ function updatePrompt(){
   const ray=new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0,0),camera);
   const hit=ray.intersectObjects(interactables,false)[0];
-  if(hit&&hit.distance<=3.2){
+  if(hit&&hit.distance<=4.0){
     promptEl.textContent="E / INTERAGIR • "+targetName(hit.object);
     promptEl.classList.add("prompt-show");
   }else promptEl.classList.remove("prompt-show");
@@ -558,13 +565,13 @@ function interact(){
   const ray=new THREE.Raycaster();
   ray.setFromCamera(new THREE.Vector2(0,0),camera);
   const hits=ray.intersectObjects(interactables,false);
-  if(!hits.length||hits[0].distance>3.2){showMessage("Não há nada para fazer aqui.");return}
+  if(!hits.length||hits[0].distance>4.0){showMessage("Não há nada para fazer aqui.");return}
   const o=hits[0].object;
   if(o.name==="caixa"){
     soundInteraction();
     if(phase===1){phase=2;setTask("Confira se a porta está trancada.");showMessage("Caixa ligado. Tudo parece normal.");}
     else if(phase===3){phase=4;shiftStartedAt=performance.now();setTask("Aguarde o início do turno.");showMessage("Tudo pronto. Agora é só esperar.");}
-    else if(phase===5){phase=6;setTask("Continue o turno normalmente.");showMessage("O monitor registrou uma falha rápida.");subtleWhisper();}
+    else if(phase===5){phase=6;setTask("Explore a loja. Você está livre para andar.");showMessage("O monitor registrou uma falha rápida. O resto do turno é com você.");subtleWhisper();}
     else showMessage("O caixa já está ligado.");
     return;
   }
@@ -576,6 +583,27 @@ function interact(){
     return;
   }
   if(o.name==="relogio"){soundInteraction();showMessage("22:00. Você acabou de chegar.");return}
+  if(o.name==="screen"){
+    soundInteraction();
+    if(phase>=6)showMessage("O monitor mostra apenas as câmeras da loja.");
+    else showMessage("O monitor ainda está iniciando.");
+    return;
+  }
+  if(o.name==="fridgeDoor"){
+    soundInteraction();
+    showMessage("Ar gelado. As bebidas estão bem refrigeradas.");
+    return;
+  }
+  if(o.name==="serviceDoor"){
+    soundDoor();
+    showMessage("Banheiro. A porta está fechada e sem sinal de uso.");
+    return;
+  }
+  if(o.name==="painelParede"){
+    soundInteraction();
+    showMessage("Painel elétrico. Alguns LEDs continuam piscando.");
+    return;
+  }
 }
 
 function startGame(){
