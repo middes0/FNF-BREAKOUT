@@ -11,6 +11,11 @@ const promptEl=document.querySelector("#prompt");
 let scene,camera,renderer,clock;
 let started=false,lightsOn=true,phase=1;
 let keys={};
+let audioCtx=null;
+let audioStarted=false;
+let ambienceNodes=[];
+let shiftStartedAt=0;
+let lastMinute=0;
 let yaw=0,pitch=0;
 let player=new THREE.Vector3(0,1.65,5.45);
 const interactables=[];
@@ -183,6 +188,129 @@ function addFridge(x){
   box("fridgeTop",[x,4.04,-4.9],[2.35,.12,.95],{material:body});
 }
 
+
+function addCylinderProp(name,pos,radius,height,color,options={}){
+  const m=mat(color,{roughness:options.roughness??.75,metalness:options.metalness??0});
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,height,16),m);
+  mesh.name=name;mesh.position.set(...pos);scene.add(mesh);
+  mesh.castShadow=true;mesh.receiveShadow=true;
+  return mesh;
+}
+
+function addBasket(x,z){
+  const basket=box("cesta",[x,.62,z],[.78,.48,.55],{color:0x42484b,texture:"metal",roughness:.52,metalness:.18});
+  basket.castShadow=true;
+  const handle=new THREE.Mesh(new THREE.TorusGeometry(.28,.035,8,20,Math.PI),mat(0x5e666a,{metalness:.25,roughness:.45}));
+  handle.position.set(x,.96,z);handle.rotation.x=Math.PI/2;scene.add(handle);
+}
+
+function addBin(x,z){
+  const bin=addCylinderProp("lixeira",[x,.65,z],.32,1.05,0x25292b,{metalness:.25,roughness:.6});
+  const lid=addCylinderProp("lixeiraTampa",[x,1.18,z],.35,.08,0x111416,{metalness:.55,roughness:.35});
+  return {bin,lid};
+}
+
+function addCamera(x,z,rot=0){
+  const mount=box("cameraMount",[x,5.45,z],[.26,.22,.42],{color:0x121416,texture:"metal",metalness:.45,roughness:.35});
+  const lens=new THREE.Mesh(new THREE.CylinderGeometry(.095,.095,.12,16),mat(0x151a20,{metalness:.55,roughness:.22}));
+  lens.position.set(x,5.32,z);lens.rotation.x=Math.PI/2; lens.rotation.z=rot; scene.add(lens);
+}
+
+function addDecorations(){
+  addBasket(-6.45,5.55);
+  addBasket(-5.55,5.55);
+  addBin(6.65,5.45);
+  addBin(-6.75,-5.75);
+
+  // tapete de entrada
+  box("tapete",[0,.13,5.98],[2.9,.08,1.45],{color:0x25292b,texture:"metal",roughness:.92});
+  for(let x=-1.1;x<=1.1;x+=.55){
+    box("tapeteStripe",[x,.18,5.98],[.11,.02,1.15],{color:0x8f77c9,roughness:.7});
+  }
+
+  // ventilação e estrutura no teto
+  for(const x of [-4.3,4.3]){
+    box("vent", [x,5.86,-4.1],[1.25,.08,.85],{color:0xc9ccce,texture:"metal",roughness:.78,metalness:.18});
+    for(let z=-4.38;z<=-3.82;z+=.14) box("ventSlat",[x,5.92,z],[.9,.03,.035],{color:0x777d80,metalness:.25,roughness:.58});
+  }
+
+  // câmera de segurança e pequenos detalhes
+  addCamera(-7.45,-5.9,-.35);
+  addCamera(7.45,-5.9,.35);
+  box("painelParede",[-7.8,2.6,-2.6],[.05,1.25,.85],{color:0x202428,texture:"metal",metalness:.35,roughness:.5});
+  for(let y=2.2;y<=2.9;y+=.24) addCylinderProp("painelLed",[-7.72,y,-2.6],.035,.08,0x8f77c9,{roughness:.25});
+}
+
+function createAmbientAudio(){
+  if(audioStarted)return;
+  audioStarted=true;
+  try{
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended")audioCtx.resume();
+
+    const master=audioCtx.createGain();
+    master.gain.value=.12;master.connect(audioCtx.destination);
+
+    const hum=audioCtx.createOscillator();
+    const humGain=audioCtx.createGain();
+    hum.type="sine";hum.frequency.value=58;humGain.gain.value=.035;
+    hum.connect(humGain).connect(master);hum.start();ambienceNodes.push(hum,humGain);
+
+    const buzz=audioCtx.createOscillator();
+    const buzzGain=audioCtx.createGain();
+    buzz.type="sawtooth";buzz.frequency.value=112; buzzGain.gain.value=.006;
+    buzz.connect(buzzGain).connect(master);buzz.start();ambienceNodes.push(buzz,buzzGain);
+
+    const noise=audioCtx.createBufferSource();
+    const buffer=audioCtx.createBuffer(1,audioCtx.sampleRate*2,audioCtx.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.12;
+    noise.buffer=buffer;noise.loop=true;
+    const filter=audioCtx.createBiquadFilter();filter.type="lowpass";filter.frequency.value=800;
+    const noiseGain=audioCtx.createGain();noiseGain.gain.value=.018;
+    noise.connect(filter).connect(noiseGain).connect(master);noise.start();
+    ambienceNodes.push(noise,filter,noiseGain,master);
+  }catch(err){audioStarted=false;}
+}
+
+function soundTone(freq=440,duration=.12,type="sine",volume=.05){
+  if(!audioCtx||audioCtx.state==="closed")return;
+  const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+  osc.type=type;osc.frequency.value=freq;
+  gain.gain.setValueAtTime(volume,audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+duration);
+  osc.connect(gain).connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+duration+.02);
+}
+
+function soundInteraction(){
+  soundTone(520,.07,"square",.035);setTimeout(()=>soundTone(740,.08,"square",.025),70);
+}
+
+function soundDoor(){
+  soundTone(190,.18,"triangle",.035);setTimeout(()=>soundTone(120,.2,"triangle",.02),110);
+}
+
+function subtleWhisper(){
+  if(!audioCtx)return;
+  const osc=audioCtx.createOscillator(),gain=audioCtx.createGain(),filter=audioCtx.createBiquadFilter();
+  osc.type="sine";osc.frequency.setValueAtTime(260,audioCtx.currentTime);osc.frequency.exponentialRampToValueAtTime(190,audioCtx.currentTime+1.4);
+  filter.type="lowpass";filter.frequency.value=720;
+  gain.gain.setValueAtTime(.0001,audioCtx.currentTime);gain.gain.exponentialRampToValueAtTime(.018,audioCtx.currentTime+.25);gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+1.5);
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+1.6);
+}
+
+function updateRoutine(){
+  if(!started||phase!==4)return;
+  const elapsed=(performance.now()-shiftStartedAt)/1000;
+  if(elapsed>12&&phase===4){
+    phase=5;
+    setTask("Faça uma última ronda na loja.");
+    showMessage("A loja está pronta. Faça uma última verificação.");
+    soundTone(330,.14,"triangle",.025);
+  }
+}
+
+
 function build(){
   scene=new THREE.Scene();
   scene.background=new THREE.Color(0x202328);
@@ -263,6 +391,8 @@ function build(){
     fixture.userData.light=l;
   }
 
+  addDecorations();
+
   // relógio
   const clockMat=mat(0xf0f0ee,{roughness:.8});
   const clockFace=cylinder("relogio",[6.72,4.48,-6.79],.56,.08,clockMat,{interact:true});
@@ -309,24 +439,28 @@ function interact(){
   if(!hits.length||hits[0].distance>3.2){showMessage("Não há nada para fazer aqui.");return}
   const o=hits[0].object;
   if(o.name==="caixa"){
+    soundInteraction();
     if(phase===1){phase=2;setTask("Confira se a porta está trancada.");showMessage("Caixa ligado. Tudo parece normal.");}
-    else if(phase===3){phase=4;setTask("Aguarde o início do turno.");showMessage("Tudo pronto. Agora é só esperar.");}
+    else if(phase===3){phase=4;shiftStartedAt=performance.now();setTask("Aguarde o início do turno.");showMessage("Tudo pronto. Agora é só esperar.");}
+    else if(phase===5){phase=6;setTask("Continue o turno normalmente.");showMessage("O monitor registrou uma falha rápida.");subtleWhisper();}
     else showMessage("O caixa já está ligado.");
     return;
   }
   if(o.name==="porta"){
+    soundDoor();
     if(phase<2){showMessage("Você ainda tem trabalho para fazer.");return}
     if(phase===2){phase=3;setTask("Volte até o caixa.");showMessage("Porta conferida e trancada.");}
     else showMessage("A porta está trancada.");
     return;
   }
-  if(o.name==="relogio"){showMessage("22:00. Você acabou de chegar.");return}
+  if(o.name==="relogio"){soundInteraction();showMessage("22:00. Você acabou de chegar.");return}
 }
 
 function startGame(){
   if(started)return;
   started=true;start.style.display="none";setLights(true);
-  phase=1;setTask("Vá até o caixa e ligue o sistema.");
+  phase=1;shiftStartedAt=performance.now();createAmbientAudio();soundTone(440,.08,"sine",.025);
+  setTask("Vá até o caixa e ligue o sistema.");
   if(innerWidth<=700)document.body.classList.add("mobile-on");
   requestAnimationFrame(loop);
   showMessage("O turno começou. Ligue o caixa e confira a loja.");
@@ -374,6 +508,7 @@ function loop(){
   camera.position.copy(player);
   camera.rotation.y=yaw;camera.rotation.x=pitch;
   updateClock();
+  updateRoutine();
   updatePrompt();
   renderer.render(scene,camera);
   requestAnimationFrame(loop);
