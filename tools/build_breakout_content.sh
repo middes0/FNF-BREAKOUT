@@ -215,199 +215,82 @@ convert -size 512x512 xc:"#09030f" \
   -fill "#ffffff" -font DejaVu-Sans-Bold -pointsize 210 -gravity center -annotate +0+8 "B" \
   "${ENGINE_DIR}/art/iconApp.png"
 
-# --- Clone three proven charts, but point them at our characters/stage -----
-python3 - "${ASSETS}" "${MOD_DIR}" <<'PY'
-import json, pathlib, sys, shutil
-assets = pathlib.Path(sys.argv[1])
-mod = pathlib.Path(sys.argv[2])
-
-charts = [
-    ("fresh", "breakout", "BREAKOUT"),
-    ("dad-battle", "overdrive", "OVERDRIVE"),
-    ("blammed", "neon-run", "NEON RUN"),
-]
-
-# BREAKOUT gets its own original chart: 32 bars at 150 BPM, with REX as opponent.
-bpm = 150
-beat_ms = 60000.0 / bpm
-sections = []
-melody = [0, 2, 4, 2, 0, 3, 5, 4]
-for bar in range(32):
-    must_hit = (bar % 2 == 1)
-    section_notes = []
-    for j, degree in enumerate(melody):
-        t = round((bar * 4 + j * 0.5) * beat_ms, 3)
-        lane = (degree % 4) + (0 if must_hit else 4)
-        section_notes.append([t, lane, 0])
-        if j in (2, 6):
-            section_notes.append([round(t + beat_ms * 0.25, 3), ((degree + 1) % 4) + (0 if must_hit else 4), 0])
-    sections.append({"sectionNotes": section_notes, "lengthInSteps": 16, "mustHitSection": must_hit, "bpm": bpm, "changeBPM": False})
-
-breakout_chart = {"song": {
-    "song": "BREAKOUT", "notes": sections, "events": [], "bpm": bpm, "speed": 2.0,
-    "needsVoices": False, "player1": "kai", "player2": "rex", "gfVersion": "nova",
-    "stage": "breakout", "validScore": True, "generatedBy": "FNF BREAKOUT original chart"
-}}
-out = mod / "data" / "breakout" / "breakout.json"
-out.parent.mkdir(parents=True, exist_ok=True)
-with out.open("w", encoding="utf-8") as f:
-    json.dump(breakout_chart, f, separators=(",", ":"))
-hard = json.loads(json.dumps(breakout_chart))
-hard["song"]["speed"] = 2.15
-with (out.parent / "breakout-hard.json").open("w", encoding="utf-8") as f:
-    json.dump(hard, f, separators=(",", ":"))
-(mod / ".music_jobs").open("w", encoding="utf-8").write("breakout|150|60.0\n")
-
-for source, folder, title in charts[1:]:
-    src = assets / "data" / source / f"{source}.json"
-    with src.open(encoding="utf-8") as f:
-        data = json.load(f)
-    data["song"]["song"] = title
-    data["song"]["player1"] = "kai"
-    data["song"]["player2"] = "rex"
-    data["song"]["needsVoices"] = False
-    data["song"]["stage"] = "breakout"
-    out = mod / "data" / folder / f"{folder}.json"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("w", encoding="utf-8") as f:
-        json.dump(data, f, separators=(",", ":"))
-
-    # Add an explicit difficulty alias so the songs remain easy to discover.
-    hard = dict(data)
-    hard["song"] = dict(data["song"])
-    hard["song"]["speed"] = max(1.0, float(data["song"].get("speed", 1.0)) + 0.15)
-    with (out.parent / f"{folder}-hard.json").open("w", encoding="utf-8") as f:
-        json.dump(hard, f, separators=(",", ":"))
-
-    # Song duration is derived from the chart, then passed to the generator.
-    max_ms = 0.0
-    for sec in data["song"].get("notes", []):
-        for note in sec.get("sectionNotes", []):
-            if note:
-                max_ms = max(max_ms, float(note[0]) + float(note[2] or 0))
-    seconds = max(45.0, max_ms / 1000.0 + 4.0)
-
-    style = {"breakout": "breakout", "overdrive": "overdrive", "neon-run": "neon"}[folder]
-    print(f"GEN {folder} bpm={data['song']['bpm']} seconds={seconds:.1f} style={style}")
-    (mod / ".music_jobs").open("a", encoding="utf-8").write(f"{folder}|{data['song']['bpm']}|{seconds}\n")
+# --- Charts + music jobs ---
+python3 "${ASSETS}" "${MOD_DIR}" <<'PY'
+import json, pathlib, sys
+assets=pathlib.Path(sys.argv[1]); mod=pathlib.Path(sys.argv[2])
+bpm=150; beat_ms=60000.0/bpm; sections=[]; melody=[0,2,4,2,0,3,5,4]
+for bar in range(48):
+    form="intro" if bar<4 else "verse" if bar<12 or 20<=bar<28 else "chorus" if bar<20 or 28<=bar<36 else "bridge" if bar<40 else "final"
+    density={"intro":1,"verse":1,"chorus":2,"bridge":1,"final":3}[form]; must_hit=bar%2==1; notes=[]
+    for j,degree in enumerate(melody):
+        if form=="intro" and j%2: continue
+        if form=="bridge" and j not in (0,2,4,6): continue
+        t=round((bar*4+j*.5)*beat_ms,3); lane=degree%4+(0 if must_hit else 4); notes.append([t,lane,0])
+        if density>=2 and j in (1,2,5,6): notes.append([round(t+beat_ms*.25,3),(degree+1)%4+(0 if must_hit else 4),0])
+        if density>=3 and j in (3,7): notes.append([round(t+beat_ms*.25,3),(degree+2)%4+(0 if must_hit else 4),0])
+    sections.append({"sectionNotes":notes,"lengthInSteps":16,"mustHitSection":must_hit,"bpm":bpm,"changeBPM":False})
+song={"song":"BREAKOUT","notes":sections,"events":[],"bpm":bpm,"speed":2.0,"needsVoices":True,"player1":"kai","player2":"rex","gfVersion":"nova","stage":"breakout","validScore":True,"generatedBy":"FNF BREAKOUT original chart"}
+out=mod/"data"/"breakout"/"breakout.json"; out.parent.mkdir(parents=True,exist_ok=True); out.write_text(json.dumps({"song":song},separators=(",",":")))
+hard=json.loads(json.dumps({"song":song})); hard["song"]["speed"]=2.15; (out.parent/"breakout-hard.json").write_text(json.dumps(hard,separators=(",",":")))
+(mod/".music_jobs").write_text("breakout|150|76.8|breakout\n")
+for source,folder,title in [("dad-battle","overdrive","OVERDRIVE"),("blammed","neon-run","NEON RUN")]:
+    data=json.loads((assets/"data"/source/f"{source}.json").read_text()); data["song"].update({"song":title,"player1":"kai","player2":"rex","needsVoices":False,"stage":"breakout"})
+    o=mod/"data"/folder/f"{folder}.json"; o.parent.mkdir(parents=True,exist_ok=True); o.write_text(json.dumps(data,separators=(",",":")))
+    hard=json.loads(json.dumps(data)); hard["song"]["speed"]=max(1,float(data["song"].get("speed",1))+.15); (o.parent/f"{folder}-hard.json").write_text(json.dumps(hard,separators=(",",":")))
+    mx=max((float(n[0])+float(n[2] or 0) for sec in data["song"].get("notes",[]) for n in sec.get("sectionNotes",[]) if n),default=0)
+    with (mod/".music_jobs").open("a") as f: f.write(f"{folder}|{data['song']['bpm']}|{max(45,mx/1000+4)}|{folder}\n")
 PY
-
 : > "${MOD_DIR}/.generated_music_jobs"
-while IFS='|' read -r folder bpm seconds; do
-  [ -z "${folder}" ] && continue
-  style="breakout"
-  [ "${folder}" = "overdrive" ] && style="overdrive"
-  [ "${folder}" = "neon-run" ] && style="neon"
-  echo "${folder}|${bpm}|${seconds}|${style}" >> "${MOD_DIR}/.generated_music_jobs"
-done < "${MOD_DIR}/.music_jobs"
+while IFS='|' read -r folder bpm seconds style; do [ -z "${folder}" ] && continue; echo "${folder}|${bpm}|${seconds}|${style}" >> "${MOD_DIR}/.generated_music_jobs"; done < "${MOD_DIR}/.music_jobs"
 rm -f "${MOD_DIR}/.music_jobs"
 
-# --- Original procedural music --------------------------------------------
-python3 - "${MOD_DIR}/.generated_music_jobs" "${MOD_DIR}" <<'PY'
-import math, random, struct, sys, wave, pathlib, subprocess
-
-jobs = pathlib.Path(sys.argv[1])
-mod = pathlib.Path(sys.argv[2])
-SR = 22050
-
-def midi(n):
-    return 440.0 * (2.0 ** ((n - 69) / 12.0))
-
-def envelope(x, length):
-    return max(0.0, 1.0 - x / max(length, 1e-6))
-
-def synth(path, bpm, seconds, style):
-    bpm = float(bpm); seconds = float(seconds)
-    beat = 60.0 / bpm
-    total = int(seconds * SR)
-    rng = random.Random({"breakout": 11, "overdrive": 22, "neon": 33}[style])
-    samples = []
-
-    scales = {
-        "breakout": [48, 51, 53, 55, 58, 60, 63],
-        "overdrive": [40, 43, 45, 47, 50, 52, 55],
-        "neon": [55, 57, 60, 62, 64, 67, 69],
-    }[style]
-    roots = scales[:4]
-
-    noise = [rng.uniform(-1, 1) for _ in range(SR // 10 + 2)]
+# --- Original instrumental + character vocals ---
+python3 "${MOD_DIR}/.generated_music_jobs" "${MOD_DIR}" <<'PY'
+import math,random,struct,sys,wave,pathlib,subprocess,json
+jobs=pathlib.Path(sys.argv[1]); mod=pathlib.Path(sys.argv[2]); SR=22050
+def midi(n): return 440*(2**((n-69)/12))
+def clamp(v): return max(-1,min(1,v))
+def ogg(samples,path):
+    wav=path.with_suffix(".wav")
+    with wave.open(str(wav),"wb") as w:
+        w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(b''.join(struct.pack("<h",int(clamp(x)*32767)) for x in samples))
+    subprocess.run(["ffmpeg","-y","-loglevel","error","-i",str(wav),"-c:a","libvorbis","-q:a","5",str(path)],check=True); wav.unlink()
+def vox(d,f,who):
+    ph=2*math.pi*f*(1+.012*math.sin(2*math.pi*5.5*d))*d
+    v=(.58*math.sin(ph)+.25*math.sin(2.01*ph)+.12*math.sin(3.02*ph)) if who=="kai" else (.50*math.sin(ph)+.30*math.sin(.5*ph)+.16*math.sin(2*ph))
+    return v*min(1,d/.018)*max(0,1-d/.18)**.8
+def make(instp,voicep,bpm,seconds):
+    beat=60/bpm; total=int(seconds*SR); rng=random.Random(314159); noise=[rng.uniform(-1,1) for _ in range(SR//10+2)]
+    scale=[48,51,53,55,58,60,63]; roots=[48,51,53,55,48,51,58,55]
+    chart=json.loads((mod/"data/breakout/breakout.json").read_text())["song"]
+    ev=[(n[0]/1000,"kai" if int(n[1])<4 else "rex",int(n[1])%4) for sec in chart["notes"] for n in sec["sectionNotes"]]
+    ins=[]; vs=[]
     for i in range(total):
-        t = i / SR
-        p = t / beat
-        beat_i = int(p)
-        frac = p - beat_i
-        step = beat_i % 16
-        bar = beat_i // 16
-
-        # Four-on-the-floor kick with a short pitch drop.
-        kick = 0.0
-        if frac < 0.18 and step % 4 == 0:
-            x = frac
-            f = 95.0 - 55.0 * min(x / 0.18, 1.0)
-            kick = math.sin(2 * math.pi * f * x) * math.exp(-16 * x) * 0.9
-
-        snare = 0.0
-        if (step % 4 == 2 and frac < 0.12):
-            idx = int((frac * SR) % len(noise))
-            snare = noise[idx] * math.exp(-24 * frac) * 0.42
-
-        hat = 0.0
-        if frac < 0.035 and step % 2 == 0:
-            idx = int((t * SR) % len(noise))
-            hat = noise[idx] * math.exp(-70 * frac) * 0.11
-
-        # Bass notes change every two beats.
-        note_index = (step // 2) % len(roots)
-        base = midi(roots[note_index])
-        bass = math.sin(2 * math.pi * base * t) * 0.18
-        bass += math.sin(2 * math.pi * (base / 2.0) * t) * 0.06
-
-        # Bright synth lead, synchronized to the chart BPM.
-        lead_note = scales[(step + bar) % len(scales)] + (12 if style != "neon" else 24)
-        lf = midi(lead_note)
-        gate = 1.0 if frac < 0.72 else 0.35
-        lead = math.sin(2 * math.pi * lf * t) * 0.105 * gate
-        lead += math.sin(2 * math.pi * lf * 2.01 * t) * 0.045 * gate
-
-        # Slow pad gives the track body without burying the notes.
-        chord_root = midi(roots[(bar // 2) % len(roots)] + 12)
-        pad = (math.sin(2 * math.pi * chord_root * t) +
-               0.7 * math.sin(2 * math.pi * chord_root * 1.25 * t) +
-               0.55 * math.sin(2 * math.pi * chord_root * 1.5 * t)) * 0.035
-
-        # Small section changes.
-        section_boost = 1.0 + (0.22 if (bar % 8) >= 4 else 0.0)
-        if style == "overdrive":
-            lead *= 1.2
-            kick *= 1.12
-        elif style == "neon":
-            hat *= 1.35
-            pad *= 1.25
-
-        v = (kick + snare + hat + bass + lead + pad) * section_boost
-        # Gentle master saturation.
-        v = math.tanh(v * 1.25) * 0.82
-        samples.append(int(max(-1, min(1, v)) * 32767))
-
-    wav_path = path.with_suffix(".wav")
-    with wave.open(str(wav_path), "wb") as wf:
-        wf.setnchannels(1); wf.setsampwidth(2); wf.setframerate(SR)
-        wf.writeframes(b"".join(struct.pack("<h", x) for x in samples))
-
-    subprocess.run([
-        "ffmpeg", "-y", "-loglevel", "error", "-i", str(wav_path),
-        "-c:a", "libvorbis", "-q:a", "5", str(path)
-    ], check=True)
-    wav_path.unlink()
-
+        t=i/SR; p=t/beat; bi=int(p); f=p-bi; st=bi%16; bar=bi//16
+        kick=math.sin(2*math.pi*(105-62*min(f/.18,1))*f)*math.exp(-16*f)*.92 if f<.18 and st%4==0 else 0
+        sn=noise[int(f*SR)%len(noise)]*math.exp(-24*f)*.42 if st%4==2 and f<.12 else 0
+        hh=noise[int(t*SR)%len(noise)]*math.exp(-70*f)*.10 if st%2==0 and f<.035 else 0
+        root=midi(roots[(bar//2)%len(roots)]); bass=.20*math.sin(2*math.pi*root*t)+.055*math.sin(2*math.pi*root/2*t)
+        lf=midi(scale[(st+bar)%len(scale)]+12); lead=(.11*math.sin(2*math.pi*lf*t)+.045*math.sin(2*math.pi*lf*2.01*t))*(1 if f<.72 else .3)
+        ch=midi(roots[(bar//2)%len(roots)]+12); pad=(math.sin(2*math.pi*ch*t)+.65*math.sin(2*math.pi*ch*1.25*t)+.5*math.sin(2*math.pi*ch*1.5*t))*.038
+        arp=math.sin(2*math.pi*midi(scale[(st*2+bar)%len(scale)]+24)*t)*(.025 if st%2==0 else 0)
+        en=.55 if 36<=bar<40 else 1+(.20 if bar%8>=4 else 0); ins.append(math.tanh((kick+sn+hh+bass+lead+pad+arp)*1.35)*.82*en)
+        v=0
+        for et,who,lane in ev:
+            d=t-et
+            if 0<=d<.18: v+=vox(d,midi([60,64,67,72][lane]+(12 if who=="rex" else 0)),who)*.48
+        vs.append(clamp(v))
+    ogg(ins,instp); ogg(vs,voicep)
 for line in jobs.read_text().splitlines():
-    folder, bpm, seconds, style = line.split("|")
-    out = mod / "songs" / folder / "Inst.ogg"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    synth(out, bpm, seconds, style)
+    if not line: continue
+    folder,bpm,seconds,style=line.split("|")
+    if folder=="breakout": make(mod/"songs"/folder/"Inst.ogg",mod/"songs"/folder/"Voices.ogg",float(bpm),float(seconds))
 PY
-
-# Clean CI-only metadata.
+test -s "${MOD_DIR}/songs/breakout/Inst.ogg"
+test -s "${MOD_DIR}/songs/breakout/Voices.ogg"
+ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "${MOD_DIR}/songs/breakout/Inst.ogg" >/dev/null
+ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "${MOD_DIR}/songs/breakout/Voices.ogg" >/dev/null
 rm -f "${MOD_DIR}/.generated_music_jobs"
 
 # --- Mobile mod update sync -------------------------------------------------
