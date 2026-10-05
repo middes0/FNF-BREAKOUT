@@ -2,122 +2,47 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#070707">
-  <meta name="description" content="THE LAST WEBSITE — uma investigação interativa.">
-  <title>THE LAST WEBSITE</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#080808">
+  <title>LOJA 24H</title>
+  <link rel="stylesheet" href="game.css">
 </head>
 <body>
-  <div class="noise" aria-hidden="true"></div>
-  <div class="scanlines" aria-hidden="true"></div>
+  <div id="game"></div>
 
-  <main class="shell">
-    <header class="topbar">
-      <button class="brand" id="brandButton" aria-label="THE LAST WEBSITE">
-        <span class="brand-mark">TLW</span>
-        <span>
-          <strong>THE LAST WEBSITE</strong>
-          <small>NODE 01 / PUBLIC ACCESS</small>
-        </span>
-      </button>
-      <div class="status">
-        <span class="dot"></span>
-        <span id="clock">--:--:--</span>
-        <span class="divider">|</span>
-        <span id="onlineText">ONLINE</span>
+  <div id="hud">
+    <div class="top">
+      <div>
+        <strong>LOJA 24H</strong>
+        <small>TURNO DA MADRUGADA</small>
       </div>
-    </header>
-
-    <section class="hero">
-      <p class="eyebrow">ARCHIVE NOTICE // 001</p>
-      <h1>Você chegou ao<br><span>último site.</span></h1>
-      <p class="intro">
-        A página está aqui há anos. Ninguém atualiza, ninguém assina. Ainda assim, algumas coisas continuam sendo registradas.
-      </p>
-
-      <div class="hero-actions">
-        <button class="primary" id="enterButton">ENTRAR NO ARQUIVO <span>→</span></button>
-        <button class="ghost" id="statusButton">VER STATUS</button>
-      </div>
-
-      <div class="notice">
-        <span class="notice-label">ÚLTIMO REGISTRO</span>
-        <span id="lastLog">05/10/2026 — 03:17:42 — conexão mantida.</span>
-      </div>
-    </section>
-
-    <section class="workspace" id="workspace" aria-hidden="true">
-      <div class="workspace-head">
-        <div>
-          <p class="eyebrow">ARQUIVO / NÍVEL 01</p>
-          <h2>O que ainda está aqui.</h2>
-        </div>
-        <button class="close" id="closeWorkspace">FECHAR ×</button>
-      </div>
-
-      <div class="grid">
-        <article class="card">
-          <span class="card-id">FILE 001</span>
-          <h3>Mensagem de boas-vindas</h3>
-          <p>Um texto deixado por alguém que parece ter ido embora às pressas.</p>
-          <button class="card-link" data-open="welcome">ABRIR ARQUIVO →</button>
-        </article>
-
-        <article class="card warning-card">
-          <span class="card-id">FILE 002</span>
-          <h3>DO_NOT_OPEN.txt</h3>
-          <p>O arquivo está marcado como vazio. A última modificação não está.</p>
-          <button class="card-link danger" data-open="forbidden">ABRIR ARQUIVO →</button>
-        </article>
-
-        <article class="card">
-          <span class="card-id">FILE 003</span>
-          <h3>Registro de visitantes</h3>
-          <p>O registro não deveria ter uma entrada depois da sua.</p>
-          <button class="card-link" data-open="visitors">ABRIR ARQUIVO →</button>
-        </article>
-
-        <article class="card">
-          <span class="card-id">SYSTEM</span>
-          <h3>Terminal</h3>
-          <p>Era usado pela pessoa que cuidava deste lugar.</p>
-          <button class="card-link" data-open="terminal">ABRIR TERMINAL →</button>
-        </article>
-      </div>
-    </section>
-
-    <section class="terminal-panel" id="terminalPanel" aria-hidden="true">
-      <div class="terminal-head">
-        <span>terminal://node01</span>
-        <button id="closeTerminal">×</button>
-      </div>
-      <div class="terminal-output" id="terminalOutput">
-        <div>THE LAST WEBSITE // TERMINAL</div>
-        <div>Digite <b>help</b> para listar comandos.</div>
-      </div>
-      <form id="terminalForm" class="terminal-form">
-        <span>&gt;</span>
-        <input id="terminalInput" autocomplete="off" spellcheck="false" aria-label="Comando">
-      </form>
-    </section>
-
-    <div class="modal" id="modal" aria-hidden="true">
-      <div class="modal-box">
-        <button class="modal-close" id="modalClose" aria-label="Fechar">×</button>
-        <p class="eyebrow" id="modalEyebrow">ARQUIVO</p>
-        <h2 id="modalTitle">Título</h2>
-        <div class="modal-content" id="modalContent"></div>
-      </div>
+      <div id="clock">22:00</div>
     </div>
+    <div class="task"><span>TAREFA</span><b id="task">Ligue as luzes da loja.</b></div>
+    <div id="message"></div>
+  </div>
 
-    <footer>
-      <span>VISITOR <b id="visitorId">0001</b></span>
-      <span id="connectionText">CONNECTION STABLE</span>
-      <button id="secretButton" aria-label="Botão sem rótulo">?</button>
-    </footer>
-  </main>
+  <div id="crosshair">+</div>
 
-  <script src="script.js"></script>
+  <div id="mobile">
+    <div id="stick"><div id="knob"></div></div>
+    <button id="interact">INTERAGIR</button>
+    <button id="look">OLHAR</button>
+  </div>
+
+  <div id="start">
+    <div class="panel">
+      <p>LOJA 24H</p>
+      <h1>Turno da madrugada</h1>
+      <span>Uma noite normal. Pelo menos no começo.</span>
+      <button id="startButton">ENTRAR NO TURNO</button>
+      <small>PC: WASD + mouse · Celular: controles na tela</small>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}
+  </script>
+  <script type="module" src="game.js"></script>
 </body>
 </html>
