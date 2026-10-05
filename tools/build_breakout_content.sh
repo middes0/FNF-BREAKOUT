@@ -83,7 +83,7 @@ make_atlas() {
   local i f row rowpng
   for i in "${!prefixes[@]}"; do
     f="${MOD_DIR}/images/characters/${char}-${i}.png"
-    convert "${base}" -background none -rotate "${angles[$i]}" -gravity center -crop 400x520+0+0 -repage "${f}"
+    convert "${base}" -background none -rotate "${angles[$i]}" +gravity center -crop 400x520+0+0 +repage "${f}"
     frames+=("${f}")
   done
   local rows=$(( (${#frames[@]} + 3) / 4 ))
