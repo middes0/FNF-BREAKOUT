@@ -368,6 +368,83 @@ function addDecorations(){
   addExplorationPoints();
 }
 
+
+function addVisualOverhaul(){
+  // Reforma visual: transformar a loja em um supermercado mais convincente,
+  // com hierarquia de corredores, pontos de destaque e pequenos detalhes.
+  const dark=mat(0x171a1c,{texture:"metal",roughness:.5,metalness:.3});
+  const light=mat(0xe7e5dc,{roughness:.72});
+  const purple=mat(0x6f5aa8,{roughness:.5});
+  const red=mat(0x9b3438,{roughness:.52});
+  const green=mat(0x536b45,{roughness:.58});
+
+  // Faixa de destaque no alto das paredes.
+  for(const z of [-6.82,6.82]){
+    box("wallBand",[0,4.65,z],[15.5,.22,.08],{material:dark});
+    box("wallBandAccent",[0,4.49,z],[15.5,.045,.09],{material:purple});
+  }
+
+  // Cabeceiras dos corredores: dão sensação de supermercado real.
+  const heads=[[-2.05,-1.48,"LIMPEZA"],[2.05,-1.48,"MERCEARIA"],[-2.05,3.55,"BEBIDAS"],[2.05,3.55,"LANCHES"]];
+  for(const [x,z,label] of heads){
+    box("aisleEnd",[x,1.7,z],[1.42,3.45,.22],{material:dark,collider:true});
+    box("aisleEndTop",[x,3.52,z],[1.48,.32,.3],{material:purple});
+    textPlane(label,[x,3.56,z+.14],[1.25,.28],"#f2f0ea","rgba(20,21,23,.96)");
+  }
+
+  // Ilha promocional central, quebrando o aspecto de sala vazia.
+  box("promoBase",[0,.62,.25],[1.45,1.05,.9],{material:dark,collider:true});
+  box("promoTop",[0,1.18,.25],[1.58,.12,1.02],{material:light});
+  textPlane("OFERTAS",[0,1.55,.72],[1.28,.3],"#fff","rgba(117,43,48,.96)");
+  for(const x of [-.42,0,.42]){
+    box("promoProduct",[x,1.52,.08],[.22,.52,.24],{color:0xc44747,texture:"label-soda",roughness:.48});
+  }
+
+  // Caixas de hortifruti decorativas para variar cores e formas.
+  for(const x of [-6.55,-5.8,5.8,6.55]){
+    box("crate",[x,.42,4.1],[.62,.58,.72],{material:mat(0x65513c,{texture:"wood",roughness:.88})});
+    for(const z of [3.92,4.16]){
+      cylinder("produce",[x,.78,z],.13,.22,mat(x<0?0x6b7e48:0x8a513d,{roughness:.72}));
+    }
+  }
+
+  // Faixas penduradas no teto e placas de seção.
+  for(const [x,label] of [[-4.1,"BEBIDAS"],[4.1,"MERCEARIA"]]){
+    box("hangingSign",[x,4.82,-.2],[2.15,.72,.08],{material:dark});
+    textPlane(label,[x,4.82,.25],[1.9,.42],"#f0edf5","rgba(55,43,77,.98)");
+  }
+
+  // Linha de luminárias distribuídas por profundidade, evitando a iluminação plana.
+  for(const z of [-4.5,-1.5,1.5,4.5]){
+    for(const x of [-4.7,0,4.7]){
+      box("ceilingFixture",[x,5.72,z],[1.35,.07,.25],{color:0x3a3e40,texture:"metal",roughness:.48});
+      box("ceilingGlow",[x,5.665,z],[.92,.025,.12],{color:0xf4f1df,roughness:.22});
+    }
+  }
+
+  // Rodapé e colunas estruturais para dar escala ao prédio.
+  for(const x of [-7.65,7.65]){
+    box("cornerColumn",[x,2.85,0],[.28,5.7,12.8],{material:dark});
+  }
+
+  // Pequenos detalhes de uso: lixeira, placa de promoção e fila.
+  box("promoPoster",[-7.76,2.85,.25],[.04,1.55,1.05],{color:0x752f36,roughness:.7});
+  textPlane("2 POR 1",[-7.70,2.85,.25],[.9,.45],"#fff","rgba(117,47,54,.96)").rotation.y=-Math.PI/2;
+  for(const z of [4.9,5.35,5.8]){
+    box("queueRail",[0,.62,z],[2.7,.06,.05],{material:purple});
+  }
+
+  // Fachada interna do caixa mais reconhecível.
+  box("checkoutBack",[0,3.25,-4.18],[5.8,2.05,.18],{material:dark});
+  box("checkoutGlow",[0,3.62,-4.06],[4.65,.06,.04],{material:purple});
+  textPlane("CAIXAS",[0,3.42,-4.05],[2.25,.4],"#f4f1f6","rgba(24,26,28,.95)");
+
+  // Pequenas marcas de desgaste quebram o visual excessivamente limpo.
+  for(const [x,z] of [[-7.1,-4.8],[7.0,-4.2],[-7.0,2.2],[7.0,2.8]]){
+    box("wallMark",[x,.9,z],[.025,.75,.35],{color:0x3b3e40,roughness:1});
+  }
+}
+
 function createAmbientAudio(){
   if(audioStarted)return;
   audioStarted=true;
@@ -546,6 +623,7 @@ function build(){
     fixture.userData.light=l;
   }
 
+  addVisualOverhaul();
   addDecorations();
 
   // Espaço maior para a loja: mantém todo o layout atual, mas dá
